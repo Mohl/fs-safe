@@ -40,7 +40,10 @@ export async function installedApi(consumer) {
   const api = await import(pathToFileURL(entry));
   function nativeState() {
     const loaded = process.report.getReport().sharedObjects.filter(file => file.endsWith('.node'));
-    assert(loaded.some(file => fs.realpathSync(file) === fs.realpathSync(binary)), 'expected native addon was not loaded');
+    const canonical = process.platform === 'win32' ? fs.realpathSync.native : fs.realpathSync;
+    const expectedPath = canonical(binary);
+    const loadedPaths = loaded.map(file => canonical(file));
+    assert(loadedPaths.includes(expectedPath), `expected native addon was not loaded: ${JSON.stringify({ expectedPath, loadedPaths })}`);
     return { nativePackage: expected.nativePackage, sha256: hash(binary), configuredMode: 'require' };
   }
   return { root: api.root, expected, verify, nativeState };
