@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "mode": "require",
+  "commonFiles": [
+    "test/native-windows-policy-parent.test.ts",
+    "test/native-parent-admission-close.test.ts",
+    "test/native-parent-native-observation.test.ts",
+    "test/pinned-mutation-fast-path.test.ts",
+    "test/pinned-mutation-receipt-walk.test.ts",
+    "test/native-mutation-policy-admission.test.ts",
+    "test/native-policy-directory-observation.test.ts",
+    "test/root-native-windows-policy.test.ts",
+    "test/pinned-mutation-shared-eligibility.test.ts"
+  ],
+  "candidateOnlyFiles": [
+    "test/native-policy-parent-owner.test.ts"
+  ],
+  "linuxAdjacent": [
+    {
+      "file": "test/staged-file-failures.test.ts",
+      "pattern": "retains publication evidence and a coordinator|reports close failure after successful removal",
+      "requiredPasses": 3
+    }
+  ],
+  "windowsAdjacent": [
+    {
+      "file": "test/windows-native-fd-bridge.test.ts",
+      "pattern": "reports direct-child creation, closes its transient handle, and rejects nested names|returns a descriptor that Node reads and stats before its native owner closes it",
+      "requiredPasses": 2
+    },
+    {
+      "file": "test/root-copy-windows-publication.test.ts",
+      "pattern": "retains a raced winner and an atomic-create admission close failure",
+      "requiredPasses": 1
+    }
+  ],
+  "contracts": [
+    "Compare all common test fullname/status pairs between A/B on the sameplatform; candidate10 ownercases must passB.",
+    "Linux-only observation/receipt nativegroups must actually execute on Linux; Windows-specific policy-eligibility groups may skipLinux. Windows must execute8 bundled native denialrows and nativefd bridgecases; POSIX-only groups may skipWindows. Missing addon is never acceptable.",
+    "Focused internal simulated-platform/native-loader tests are safety evidence, explicitly separate from real installed package timings. Timed calls use no mocks or testhooks.",
+    "Perarm package:smoke with FS_SAFE_EXPECTED_SOURCE_COMMIT; manifestsandtarballs feed exact isolated install and bind-consumer.",
+    "Installed qualifier must complete38rows onLinux or34onWindows perarm (matrix16/12 success +4partialsuccess +4all-missing success +12pre-mutationrefusals +2createcollisions). Each validates expectedentries, copy-source preservation and cleanup before removal."
+  ],
+  "limits": [
+    "Linux is the required POSIX qualification target because receipt-walk native tests intentionally load addon only onLinux; this protocol makes no macOSruntimeclaim.",
+    "Focused tests and managed source review complement installed behaviors; not exhaustive race/scheduling proof. Existing newowner tests cover child/previous-parent-close combinations and queued authorityrevocation; complete-parent paired failures/falsy/session-disposal edge expansion remains a maintainer judgment, not a performance result."
+  ]
+}

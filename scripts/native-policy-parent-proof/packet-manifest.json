@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "study": "native-policy-parent-owner",
+  "sourcePins": {
+    "A": {
+      "commit": "305ff575ce134bb596c0eb4bc9205fac8575a884",
+      "tree": "5d26ac8455f6440944185c5f74d79d9f6b60602f"
+    },
+    "B": {
+      "commit": "0aa0fa5ee942d117abfda15b1b93aa6cf732310e",
+      "tree": "5240eaa0433bc07f3aa5432ad893e5564f55dc00"
+    },
+    "branch": "codex/native-policy-parent-owner"
+  },
+  "files": {
+    "README.txt": "13023d0ea0c467891f66cf379455f52b7cfc8a088d59d692c2d8ee86b7761bf2",
+    "check-source-tests.py": "8340f1a2095239d73554caf84dd5b308ad1420a87301df9a3bfbcefac9f77e29",
+    "collect.py": "db5077f4cdbb5bf530e91071869a34379c5c13aac142edd2c138e8b3a67016fd",
+    "harness/assess.py": "09b1d57e5f857a8ae8a2b8b0a50c4e2ed5015f5f3a099820dd864d1c41763814",
+    "harness/benchmark-leg.mjs": "370f103737c074c0a7184f0b3c67584826046385568cb15fa451eb4d3d192cd4",
+    "harness/bind-consumer.mjs": "437858cae33f33642017b793629627d660980e69105abc7ed8a73edd3f754704",
+    "harness/bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
+    "harness/fixture.mjs": "6b6c3c18f3a8d1f99c622dd0ac49bae5f1a8e6dc64309b71d27d12fd36ab0eaa",
+    "harness/installed.mjs": "f97ae74b763a27ad5734d01585a2f78be867761a4af2bc97b5d80919e4f85ebf",
+    "harness/qualify.mjs": "0b9dc54e911e3484e91d84d3a96ebc8a0028e294807c9ff10d8f36dae5862267",
+    "harness/settlement_control.py": "63338a93219e17187fe1db7dc1b5b2d4c0bdc88ad46c7328f58a89c428504ba6",
+    "harness/step-owner.py": "233098357c31a2402a20207082077d6bdeda7be19f84cfdf5fe472bb9587707a",
+    "harness/windows-step-owner.py": "8348c3fa6828954dadb7389ae1db6835282cada8636d8440097196ff5921e509",
+    "pins.json": "36aa1e2c97334b74c636dd87fc9e928f84b7c9952eec627700aca7e6b79fee95",
+    "prepare-consumers.mjs": "8c9af840c4c9c28c109ed340d8f9ab757fd9625fc576e2302cfa8008497cee37",
+    "protocol.json": "ddcb4826547d3fdda27cbf8a129df65b899a95722045474f195ba2f159035899",
+    "qualification.json": "edf6b0e9b27f90b989c2d413b6a6d24667db7276325e1901342a30585d556709",
+    "run-study.py": "e5093d35319a7a94ff57fce81b970ebcadee62dab98db54255f0a19bacca2887",
+    "share-native.py": "fabfcf275453a22249bb9810ea753360aba1b1e91d30c8ba2de3a6bc3b16d187",
+    "verify-installed.mjs": "2b75b4774cb4fcfe01faa55874dfa40fad435be43983654763929f3d8a83208c"
+  },
+  "executionGate": "Only parent-authorized execution copy may change pins.ready false to true; source pins and all listed files remain frozen.",
+  "preparationManifestSha256": "88a4eea9e3d25877d91f5a8cc6bd129dc69d72d988b41390e4ea9c15394ee560"
+}

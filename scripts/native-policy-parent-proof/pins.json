@@ -1,0 +1,13 @@
+{
+  "ready": true,
+  "A": {
+    "commit": "305ff575ce134bb596c0eb4bc9205fac8575a884",
+    "tree": "5d26ac8455f6440944185c5f74d79d9f6b60602f"
+  },
+  "B": {
+    "commit": "0aa0fa5ee942d117abfda15b1b93aa6cf732310e",
+    "tree": "5240eaa0433bc07f3aa5432ad893e5564f55dc00"
+  },
+  "branch": "codex/native-policy-parent-owner",
+  "executionOwner": "parent only; preparation does not authorize dispatch"
+}

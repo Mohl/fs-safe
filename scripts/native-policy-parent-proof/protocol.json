@@ -1,0 +1,561 @@
+{
+  "schema": 1,
+  "study": "native-policy-parent-owner",
+  "status": "Parent accepted scope/counts/gates; source harness under preparation; dispatch disabled",
+  "sourcePins": {
+    "ready": false,
+    "A": {
+      "commit": "305ff575ce134bb596c0eb4bc9205fac8575a884",
+      "tree": "5d26ac8455f6440944185c5f74d79d9f6b60602f"
+    },
+    "B": {
+      "commit": "0aa0fa5ee942d117abfda15b1b93aa6cf732310e",
+      "tree": "5240eaa0433bc07f3aa5432ad893e5564f55dc00"
+    },
+    "branch": "codex/native-policy-parent-owner",
+    "executionOwner": "parent only; preparation does not authorize dispatch"
+  },
+  "scope": "Share private native parent-walk owner only; no held study reopened and no earlier measured values accepted. Linux qualifies POSIX owner; actual Windows qualifies Windows owner. macOS is not claimed.",
+  "route": "One ordinary GitHub Actions carrier with common setup/Node adapters. Linux uses ubuntu-latest; Windows matrix label windows-latest maps to existing fs-safe-windows-16core contract and verify-windows-ci-runner action. Pair only within each host. Parent owns all dispatch; no local pnpm.",
+  "native": "require only for timings; strict rename identity and real addon. Never verify-content-with-lock. Both platform APIs include buffered Root.create({atomic:true}) to exercise reportCloseErrors. stageFileInDirectory is unrelated and is not timed.",
+  "matrix": {
+    "linux": [
+      {
+        "id": "write/complete/eligible",
+        "operation": "write",
+        "layout": "complete",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "existing",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "write/complete/raw-dot-deopt",
+        "operation": "write",
+        "layout": "complete",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "existing",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "write/missing/eligible",
+        "operation": "write",
+        "layout": "missing",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "write/missing/raw-dot-deopt",
+        "operation": "write",
+        "layout": "missing",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "create/complete/eligible",
+        "operation": "create",
+        "layout": "complete",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "create/complete/raw-dot-deopt",
+        "operation": "create",
+        "layout": "complete",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "create/missing/eligible",
+        "operation": "create",
+        "layout": "missing",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "create/missing/raw-dot-deopt",
+        "operation": "create",
+        "layout": "missing",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "copyIn/complete/eligible",
+        "operation": "copyIn",
+        "layout": "complete",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "existing",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "copyIn/complete/raw-dot-deopt",
+        "operation": "copyIn",
+        "layout": "complete",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "existing",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "copyIn/missing/eligible",
+        "operation": "copyIn",
+        "layout": "missing",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "copyIn/missing/raw-dot-deopt",
+        "operation": "copyIn",
+        "layout": "missing",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "create-atomic/complete/eligible",
+        "operation": "create-atomic",
+        "layout": "complete",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": true
+      },
+      {
+        "id": "create-atomic/complete/raw-dot-deopt",
+        "operation": "create-atomic",
+        "layout": "complete",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": true
+      },
+      {
+        "id": "create-atomic/missing/eligible",
+        "operation": "create-atomic",
+        "layout": "missing",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": true
+      },
+      {
+        "id": "create-atomic/missing/raw-dot-deopt",
+        "operation": "create-atomic",
+        "layout": "missing",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": true
+      }
+    ],
+    "win32": [
+      {
+        "id": "write/complete/eligible",
+        "operation": "write",
+        "layout": "complete",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "existing",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "write/missing/eligible",
+        "operation": "write",
+        "layout": "missing",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "write/missing/raw-dot-deopt",
+        "operation": "write",
+        "layout": "missing",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "create/complete/eligible",
+        "operation": "create",
+        "layout": "complete",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "create/missing/eligible",
+        "operation": "create",
+        "layout": "missing",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "create/missing/raw-dot-deopt",
+        "operation": "create",
+        "layout": "missing",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "copyIn/complete/eligible",
+        "operation": "copyIn",
+        "layout": "complete",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "existing",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "copyIn/missing/eligible",
+        "operation": "copyIn",
+        "layout": "missing",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "copyIn/missing/raw-dot-deopt",
+        "operation": "copyIn",
+        "layout": "missing",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": false
+      },
+      {
+        "id": "create-atomic/complete/eligible",
+        "operation": "create-atomic",
+        "layout": "complete",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": true
+      },
+      {
+        "id": "create-atomic/missing/eligible",
+        "operation": "create-atomic",
+        "layout": "missing",
+        "policyPath": "eligible",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": true
+      },
+      {
+        "id": "create-atomic/missing/raw-dot-deopt",
+        "operation": "create-atomic",
+        "layout": "missing",
+        "policyPath": "raw-dot-deopt",
+        "depth": 8,
+        "target": "absent",
+        "reportCloseErrors": true
+      }
+    ]
+  },
+  "timing": {
+    "schedule": [
+      {
+        "block": 1,
+        "position": 1,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 1,
+        "position": 2,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 1,
+        "position": 3,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 1,
+        "position": 4,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 2,
+        "position": 1,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 2,
+        "position": 2,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 2,
+        "position": 3,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 2,
+        "position": 4,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 3,
+        "position": 1,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 3,
+        "position": 2,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 3,
+        "position": 3,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 3,
+        "position": 4,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 4,
+        "position": 1,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 4,
+        "position": 2,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 4,
+        "position": 3,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 4,
+        "position": 4,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 5,
+        "position": 1,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 5,
+        "position": 2,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 5,
+        "position": 3,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 5,
+        "position": 4,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 6,
+        "position": 1,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 6,
+        "position": 2,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 6,
+        "position": 3,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 6,
+        "position": 4,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 7,
+        "position": 1,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 7,
+        "position": 2,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 7,
+        "position": 3,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 7,
+        "position": 4,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 8,
+        "position": 1,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 8,
+        "position": 2,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 8,
+        "position": 3,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 8,
+        "position": 4,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      }
+    ],
+    "quartetsPerPlatform": 8,
+    "legsPerPlatform": 32,
+    "legsTotal": 64,
+    "cellsTotal": 28,
+    "samplesPerCellLeg": 5,
+    "callsPerSample": 10,
+    "warmupsPerCellLeg": 5,
+    "checkedUntimedPerCellLeg": 1,
+    "measuredCallsTotal": 44800,
+    "sampleMeansTotal": 4480,
+    "payloadBytes": 128,
+    "metric": "callUs",
+    "interval": "All options/arguments and the bound actual public Root method are prepared before timing. Immediately before invoking that bound Root.write/create/copyIn method until its promise settles, including library admission/stage/publication/fences/settlement. Caller validation, fixture reset, Root construction and report writes stay outside. No adapter option spreading/dispatch or component subtraction.",
+    "options": {
+      "mode": "require",
+      "durable": false,
+      "mkdir": true,
+      "mutationSymlinks": "reject",
+      "renameIdentity": "strict",
+      "copyClone": "never",
+      "policy": "existing unrelated empty denied subtree, identity/emptiness checked; same real enabled policy every row",
+      "copySourceHardlinks": "reject"
+    },
+    "pathReason": "Literal dot+platform separator prefix naturally disables route acceleration without native mocks. POSIX complete/missing eligible/deopt all timed. Windows complete-parent branch runs before session creation, hence only one complete route per API; both missing routes timed.",
+    "fixtures": "Private task workspace; fixed depth8. Complete parent chain exists untimed. Missing timing layout starts with firstcomponent present and remaining7 absent before every call. Qualifier separately covers partial(first4) and all-missing(first0). Existing unrelated denied directory stays empty with exact identity. Write/copy complete rows start with existing sentinel leaf; creates have absent leaf. Exact contents/names/identity checked before owned unlink/rmdir; copy source unchanged. No recursive cleanup hides extras.",
+    "retention": "Atomic cumulative raw-sample report after every completed sample outside interval. Incomplete/failure status survives interruption. All accepted samples retained, no trimming/retries/selective pooling.",
+    "statistics": {
+      "leg": "median of five arithmetic sample means",
+      "quartet": "geometric mean twoB leg medians / geometric mean twoA",
+      "paired": "geometric mean eight quartet ratios",
+      "orders": "separate geometric means of fourABBA and fourBAAB quartets",
+      "bootstrap": "100000 whole-quartet resamples of8 draws; xorshift32 seed734 shifts13/17/5, uint32 eachupdate, index=floor(uint32/2^32*8), reset stream eachcell; upper95 nearest-rank ceil(.95*N)-1"
+    },
+    "gate": {
+      "threshold": 1.05,
+      "pass": "Every cell paired/order/upper95<=1.05 AND source/package/correctness/process/fixture gates pass",
+      "hold": "Any paired/order point ratio>1.05; alone not proof of causal regression",
+      "inconclusive": "Incomplete/invalid data or point/orderpass but upper95>1.05",
+      "discipline": "No result-dependent count/order/threshold change, rerun, drop, or prior held-study data reuse. Linux/Windows assessed separately; overallpass requires both."
+    }
+  },
+  "bounds": {
+    "legSeconds": 180,
+    "qualificationSeconds": 180,
+    "assessmentSeconds": 120,
+    "timingStepMinutes": 120,
+    "workflowJobMinutes": 180,
+    "sourceTestsMinutes": 15,
+    "packageSmokeMinutesPerArm": 20
+  },
+  "provenance": "Exact clean A/B commit+tree and equal native/Cargo/lock/build-tool inputs. Build JS separately. Build one common native addon from A per host, hash it, copy exact bytes to B and stage through existing stage-host-native script. Root+matching native tarballs from package:smoke for each arm installed offline in separate neutral consumers using isolatedConsumerEnv and --ignore-scripts --omit=optional. Both versions0.21.1, source pins, full dist/addon hashes, tarballSHA512 and lockintegrities verified before/after every child, plus final source/dist/native recheck. Record Node24.21.0,pnpm12.4.2,Rust/LLVM hashes,OS/kernel/CPU/availableParallelism/FS/Windowsvolume. Shared native bytes reduce irrelevant nativebuild variance; the changed TSdist must never be shared.",
+  "qualification": "Run focused safety-inventory on eachhost+arm with requirednative (candidateowner regression onlyB; commonbaseline suite exactsame). Both package:smoke runs plus installed qualify.mjs rows. Windows actual8 native denial rows required; simulated platform tests complementary. Existing/no-parent mkdirfalse/deniedprefix/refusal and atomiccollision retain sentinels and no temp names. Product builds/tests happen only remotely under parent authorization.",
+  "processes": "Linux uses unchanged reviewed step-owner/bounded/settlement controls. Windows uses narrow suspended-start JobObject owner with direct file handles; separately managed-review before dispatch. All steps must join root and descendantjob/group before nextleg/artifacts; any missing settlement blocks success. Build/tool steps may use standard bounded GHAsteps; timed child is freshNode perleg.",
+  "publication": "Archive only settled private evidence; retain all failed/incomplete receipts. On failure stop first, no laterlegs. Parent carrier must validate control receipts and finalized archive before upload, exclude workspace fixtures/node_modules/cargo targets.",
+  "idle": "Before timing only, parent ensures no concurrent build/test/workloads; record host telemetry. No automated rerun or adaptive perleg wait."
+}
