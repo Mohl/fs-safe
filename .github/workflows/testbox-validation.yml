@@ -51,7 +51,7 @@ jobs:
           import hashlib, json, pathlib, sys
           packet = pathlib.Path(sys.argv[1])
           manifest = packet / "packet-manifest.json"
-          assert hashlib.sha256(manifest.read_bytes()).hexdigest() == "dd12aade9a2a963221673a4e2defc21052a5ca93528a1ce1c236ecb9e7b411db"
+          assert hashlib.sha256(manifest.read_bytes()).hexdigest() == "a89593af02735258d7fb61277e3fc42844aee2fcc1640d32f4ed0edc2d66dffc"
           pins_path = packet / "pins.json"
           pins = json.loads(pins_path.read_text())
           assert pins["ready"] is False

@@ -1,7 +1,8 @@
 This branch carries the frozen PR732 qualification packet on an ordinary Ubuntu
 GitHub Actions runner. It is validation infrastructure only and is not the PR732
-production branch. Neither source commit, workload, sample count, gate nor
-packet file has changed.
+production branch. The initial carrier preserved the entire packet. The later
+reclamation amendment described below preserves both source commits, the public
+workload, sample counts, order, execution limits and acceptance gates.
 
 The initial Blacksmith Testbox attempt stopped at an unsupported XFS mount
 before source builds, tests, API calls, traces or timing. Its evidence remains
@@ -14,3 +15,11 @@ a clean detached candidate transport, a separate packet and empty work directory
 and enables only the reviewed pins.ready gate at runtime. All mounted volumes
 remain owned by the unchanged coordinator. Only its settled results archive is
 uploaded; images and mounted paths are excluded. No release is performed.
+
+The first ordinary Ubuntu attempt passed correctness and all12 syscall proofs,
+then reached the120-second whole-leg cap in baseline Btrfs leg05. Its complete
+archive and partial samples remain unchanged. This carrier amendment fixes only
+the untimed reclamation sequence: filesystem sync starts deleted-subvolume
+cleaning, then subvolume sync waits for completion. Source, calls, sample counts,
+orders, execution limits and statistical gates are unchanged. A fresh full
+dataset is required; no conclusion is inferred from the incomplete attempt.

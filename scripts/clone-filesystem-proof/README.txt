@@ -45,8 +45,11 @@ unprivileged ptrace. 12 separately bounded strace runs prove the expected parent
 A=3 -> B=2 while copy-source probes stay 1. Timing has no strace: 64 fixed ABBA/BAAB
 legs, six cells, five 30-call samples plus five warmups and one checked call per
 row/leg. 28,800 measured calls. Raw per-call values and sample means retained.
-Btrfs identity-checked subvolume deletion is outside intervals; subvolume sync
-is fixed before row qualification, after warmups, and after each sample.
+Btrfs identity-checked subvolume deletion is outside intervals. Filesystem sync
+starts deleted-subvolume cleaning, then subvolume sync waits for completion, at
+the same fixed boundaries before row qualification, after warmups, and after each
+sample. This disclosed reclamation amendment retains the original120-second leg
+cap and all sample counts, orders and acceptance gates; prior data stay separate.
 
 assess.py reports performance only. Every paired/order/upper95 ratio must be
 <=1.05; point/order failure means hold, confidence-only failure inconclusive.

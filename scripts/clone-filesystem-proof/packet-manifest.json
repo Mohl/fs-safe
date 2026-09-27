@@ -18,7 +18,7 @@
     "harness/benchmark-leg.mjs": "53da860b5947b09cb26183661eab469b11e6b9461ddbd7f0aa23fc326a300a72",
     "harness/bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
     "harness/clone-supervise.py": "508c4e86e66de188ccc1558d46c17a1b4d5544463d9516f403f5902310cc6ccd",
-    "harness/fixture.mjs": "5e4b974e8156e75e29bd542a5580d453921703f82d7411b650fce761b9cb7d1d",
+    "harness/fixture.mjs": "4381b20208f6500ac8a5773f9f0026437bbb2f64a16ed1905ea8491c1efe58ea",
     "harness/installed.mjs": "020b615fec626fb501f8e7fdadd2485fdfc821c49209416a7735d801f8744531",
     "harness/mount-owner.py": "96abb11eaefbe2d3bcff2adcefc4192cc73430659bd1b6b1efef3774d62835fb",
     "harness/parse-strace.py": "d34f6099a7422e3dcb491de91e214daf8df0d713ed8533c8343623c4c1c03310",
@@ -31,8 +31,8 @@
     "harness/trace-prepare.mjs": "060d30c6f847747810208c5d49b20c8468d43ba0fdbdffe6d0ab276d80045cc6",
     "harness/trace-probe.mjs": "02272619f68d481657cb607b397f92edcdbb282f1c884bb5f954a0a75b4f3b4b",
     "harness/xfs-proof.mjs": "939d42611d40ebf12dc16f1bf2b471bc7bb0f74c170ac9f073860fe7e813f94b",
-    "protocol.json": "b666cdd0a45957350e0bc188c0dad4151c9d37380eeaa75b5b0cb7348d584415",
-    "README.txt": "2ca74020e1ffdee8f9648b8f83f97c8b8102af7a08e4d1d1f162e6ef7f2c3c32"
+    "protocol.json": "772b6c61ce2415cbe100f1bc9af93b1076eb151502d84ba63f5fcd3417bff284",
+    "README.txt": "8be4eb03890b9f016992723102da811488da353e9a18f5737977b4b847c0e5c7"
   },
   "executionGate": "pins.ready is false; only parent runtime authorization may change it to true"
 }

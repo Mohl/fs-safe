@@ -90,5 +90,8 @@ export async function removeOwned(filename, receipt, filesystem, expected) {
   await assert.rejects(fs.lstat(filename), { code: 'ENOENT' });
 }
 export async function reclaim(mount, filesystem) {
-  if (filesystem === 'btrfs') await tool('sudo', ['-n', 'btrfs', 'subvolume', 'sync', mount]);
+  if (filesystem === 'btrfs') {
+    await tool('sudo', ['-n', 'btrfs', 'filesystem', 'sync', mount]);
+    await tool('sudo', ['-n', 'btrfs', 'subvolume', 'sync', mount]);
+  }
 }

@@ -623,7 +623,7 @@
       }
     ],
     "interval": "performance.now immediately before one awaited public createCloneSource/copyTree call and immediately after promise settlement. Includes the complete library operation and its internal settlement/fences. Caller output deletion, fixture validation, source setup, mount tools and Btrfs reclamation are outside the interval. No component subtraction or native-only timing claim.",
-    "cleanupBoundary": "Delete each owned output after its public call settles, outside timing. For Btrfs use identity-checked task-owned subvolume deletion; execute btrfs subvolume sync at a fixed untimed boundary before row qualification, after five warmups, and after every30-call sample, identically in A/B. No adaptive reclamation/retry. All output names must be absent before the next call.",
+    "cleanupBoundary": "Delete each owned output after its public call settles, outside timing. For Btrfs use identity-checked task-owned subvolume deletion; execute btrfs filesystem sync followed by btrfs subvolume sync at a fixed untimed boundary before row qualification, after five warmups, and after every30-call sample, identically in A/B. No adaptive reclamation/retry. All output names must be absent before the next call.",
     "statistics": {
       "legStatistic": "median of5 sample arithmetic mean callUs values",
       "quartetRatio": "geometric mean of two B leg medians divided by geometric mean of two A leg medians",
@@ -667,5 +667,34 @@
     "traceFileLimitBytes": 8388608,
     "genericSupervisor": "harness/supervise.py retained byte-identical as reference; clone-supervise.py is the only entrypoint",
     "providerCleanup": "Parent owns stop and exact Testbox/Actions terminal receipts after collecting settled evidence; no readiness claim substitutes for provider cleanup"
+  },
+  "reclamationAmendment": {
+    "reason": "The first ordinary Ubuntu run timed out in baseline Btrfs leg05 after120s, retaining120 public calls totaling0.033208861s. Separate cleanup steps took up to30.10s; the exact interrupted operation was not established.",
+    "change": "At the same untimed reclamation boundaries, explicitly start deleted-subvolume cleaning with filesystem sync before waiting with subvolume sync.",
+    "unchanged": [
+      "source commits",
+      "public calls",
+      "fixtures",
+      "sample counts",
+      "balanced schedule",
+      "120-second leg cap",
+      "overall workload cap",
+      "5-percent gates",
+      "bootstrap procedure"
+    ],
+    "priorStudy": "https://github.com/openclaw/fs-safe/actions/runs/36336728781",
+    "priorEvidence": "Preserved unchanged; incomplete data are not relabeled as a completed study. A fresh complete dataset is required.",
+    "documentation": [
+      {
+        "url": "https://github.com/kdave/btrfs-progs/blob/devel/Documentation/btrfs-filesystem.rst",
+        "gitBlob": "f20fda47839d301e406bf579b7438dfcf7023ed3",
+        "contract": "filesystem sync starts cleaning deleted subvolumes; subvolume sync waits for completion"
+      },
+      {
+        "url": "https://github.com/kdave/btrfs-progs/blob/devel/Documentation/btrfs-subvolume.rst",
+        "gitBlob": "77fe5d005c3537f426ae7b3ab0e2afbf020ce970",
+        "contract": "subvolume deletion does not commit a full transaction by default"
+      }
+    ]
   }
 }
