@@ -1,22 +1,22 @@
 {
   "schema": 1,
-  "study": "native-policy-parent-owner",
-  "status": "Parent accepted scope/counts/gates; source harness under preparation; dispatch disabled",
+  "study": "parent-captured-identity",
+  "status": "Parent-integrated execution copy for the frozen exact-pair Linux qualification",
   "sourcePins": {
-    "ready": false,
+    "ready": true,
     "A": {
-      "commit": "305ff575ce134bb596c0eb4bc9205fac8575a884",
-      "tree": "5d26ac8455f6440944185c5f74d79d9f6b60602f"
-    },
-    "B": {
-      "commit": "0aa0fa5ee942d117abfda15b1b93aa6cf732310e",
+      "commit": "a4571cde36b661fcbf4318be6348d721ea533963",
       "tree": "5240eaa0433bc07f3aa5432ad893e5564f55dc00"
     },
-    "branch": "codex/native-policy-parent-owner",
-    "executionOwner": "parent only; preparation does not authorize dispatch"
+    "B": {
+      "commit": "c5a818758b3cc454c451cd01339f5757d851f7df",
+      "tree": "4fc37c7148656326f91d3925f8c52b89f3d37636"
+    },
+    "branch": "codex/parent-captured-identity",
+    "executionOwner": "Parent authorization recorded by ready=true; manual workflow dispatch follows source review"
   },
-  "scope": "Share private native parent-walk owner only; no held study reopened and no earlier measured values accepted. Linux qualifies POSIX owner; actual Windows qualifies Windows owner. macOS is not claimed.",
-  "route": "One ordinary GitHub Actions carrier with common setup/Node adapters. Linux uses ubuntu-latest; Windows matrix label windows-latest maps to existing fs-safe-windows-16core contract and verify-windows-ci-runner action. Pair only within each host. Parent owns all dispatch; no local pnpm.",
+  "scope": "Reuse already captured descriptor dev/ino only in ordinary POSIX policy-parent description. Preserve the fresh named-path fence and all close/publication behavior. Windows function route is unchanged and remains covered by normal CI. No earlier study/data is reused.",
+  "route": "One ordinary ubuntu-latest carrier job reusing the proven 351320f7 process/build/package/timing infrastructure. Parent owns orchestration and dispatch. Node24.21.0 supplies the fixed timing study; Node22.23.2 and Node24.21.0 each supply untimed public syscall proof and focused race regression. No local pnpm.",
   "native": "require only for timings; strict rename identity and real addon. Never verify-content-with-lock. Both platform APIs include buffered Root.create({atomic:true}) to exercise reportCloseErrors. stageFileInDirectory is unrelated and is not timed.",
   "matrix": {
     "linux": [
@@ -142,116 +142,6 @@
         "operation": "create-atomic",
         "layout": "complete",
         "policyPath": "raw-dot-deopt",
-        "depth": 8,
-        "target": "absent",
-        "reportCloseErrors": true
-      },
-      {
-        "id": "create-atomic/missing/eligible",
-        "operation": "create-atomic",
-        "layout": "missing",
-        "policyPath": "eligible",
-        "depth": 8,
-        "target": "absent",
-        "reportCloseErrors": true
-      },
-      {
-        "id": "create-atomic/missing/raw-dot-deopt",
-        "operation": "create-atomic",
-        "layout": "missing",
-        "policyPath": "raw-dot-deopt",
-        "depth": 8,
-        "target": "absent",
-        "reportCloseErrors": true
-      }
-    ],
-    "win32": [
-      {
-        "id": "write/complete/eligible",
-        "operation": "write",
-        "layout": "complete",
-        "policyPath": "eligible",
-        "depth": 8,
-        "target": "existing",
-        "reportCloseErrors": false
-      },
-      {
-        "id": "write/missing/eligible",
-        "operation": "write",
-        "layout": "missing",
-        "policyPath": "eligible",
-        "depth": 8,
-        "target": "absent",
-        "reportCloseErrors": false
-      },
-      {
-        "id": "write/missing/raw-dot-deopt",
-        "operation": "write",
-        "layout": "missing",
-        "policyPath": "raw-dot-deopt",
-        "depth": 8,
-        "target": "absent",
-        "reportCloseErrors": false
-      },
-      {
-        "id": "create/complete/eligible",
-        "operation": "create",
-        "layout": "complete",
-        "policyPath": "eligible",
-        "depth": 8,
-        "target": "absent",
-        "reportCloseErrors": false
-      },
-      {
-        "id": "create/missing/eligible",
-        "operation": "create",
-        "layout": "missing",
-        "policyPath": "eligible",
-        "depth": 8,
-        "target": "absent",
-        "reportCloseErrors": false
-      },
-      {
-        "id": "create/missing/raw-dot-deopt",
-        "operation": "create",
-        "layout": "missing",
-        "policyPath": "raw-dot-deopt",
-        "depth": 8,
-        "target": "absent",
-        "reportCloseErrors": false
-      },
-      {
-        "id": "copyIn/complete/eligible",
-        "operation": "copyIn",
-        "layout": "complete",
-        "policyPath": "eligible",
-        "depth": 8,
-        "target": "existing",
-        "reportCloseErrors": false
-      },
-      {
-        "id": "copyIn/missing/eligible",
-        "operation": "copyIn",
-        "layout": "missing",
-        "policyPath": "eligible",
-        "depth": 8,
-        "target": "absent",
-        "reportCloseErrors": false
-      },
-      {
-        "id": "copyIn/missing/raw-dot-deopt",
-        "operation": "copyIn",
-        "layout": "missing",
-        "policyPath": "raw-dot-deopt",
-        "depth": 8,
-        "target": "absent",
-        "reportCloseErrors": false
-      },
-      {
-        "id": "create-atomic/complete/eligible",
-        "operation": "create-atomic",
-        "layout": "complete",
-        "policyPath": "eligible",
         "depth": 8,
         "target": "absent",
         "reportCloseErrors": true
@@ -505,14 +395,14 @@
     ],
     "quartetsPerPlatform": 8,
     "legsPerPlatform": 32,
-    "legsTotal": 64,
-    "cellsTotal": 28,
+    "legsTotal": 32,
+    "cellsTotal": 16,
     "samplesPerCellLeg": 5,
     "callsPerSample": 10,
     "warmupsPerCellLeg": 5,
     "checkedUntimedPerCellLeg": 1,
-    "measuredCallsTotal": 44800,
-    "sampleMeansTotal": 4480,
+    "measuredCallsTotal": 25600,
+    "sampleMeansTotal": 2560,
     "payloadBytes": 128,
     "metric": "callUs",
     "interval": "All options/arguments and the bound actual public Root method are prepared before timing. Immediately before invoking that bound Root.write/create/copyIn method until its promise settles, including library admission/stage/publication/fences/settlement. Caller validation, fixture reset, Root construction and report writes stay outside. No adapter option spreading/dispatch or component subtraction.",
@@ -526,7 +416,7 @@
       "policy": "existing unrelated empty denied subtree, identity/emptiness checked; same real enabled policy every row",
       "copySourceHardlinks": "reject"
     },
-    "pathReason": "Literal dot+platform separator prefix naturally disables route acceleration without native mocks. POSIX complete/missing eligible/deopt all timed. Windows complete-parent branch runs before session creation, hence only one complete route per API; both missing routes timed.",
+    "pathReason": "Keep the proven Linux16 cells unchanged: four public methods, complete and first-present/seven-missing depth8 parents, eligible and natural raw-dot-deoptimized policy paths. Ordinary POSIX description is affected; retained-route cases are controls.",
     "fixtures": "Private task workspace; fixed depth8. Complete parent chain exists untimed. Missing timing layout starts with firstcomponent present and remaining7 absent before every call. Qualifier separately covers partial(first4) and all-missing(first0). Existing unrelated denied directory stays empty with exact identity. Write/copy complete rows start with existing sentinel leaf; creates have absent leaf. Exact contents/names/identity checked before owned unlink/rmdir; copy source unchanged. No recursive cleanup hides extras.",
     "retention": "Atomic cumulative raw-sample report after every completed sample outside interval. Incomplete/failure status survives interruption. All accepted samples retained, no trimming/retries/selective pooling.",
     "statistics": {
@@ -541,8 +431,10 @@
       "pass": "Every cell paired/order/upper95<=1.05 AND source/package/correctness/process/fixture gates pass",
       "hold": "Any paired/order point ratio>1.05; alone not proof of causal regression",
       "inconclusive": "Incomplete/invalid data or point/orderpass but upper95>1.05",
-      "discipline": "No result-dependent count/order/threshold change, rerun, drop, or prior held-study data reuse. Linux/Windows assessed separately; overallpass requires both."
-    }
+      "discipline": "No result-dependent count/order/threshold change, retry, drop, or prior-study data reuse. All16 Linux cells must satisfy fixed paired/order/upper95 gates; untimed mechanism proof is separate."
+    },
+    "runtime": "v24.21.0",
+    "dataPolicy": "Only new exact-pair results from this attempt; never pool #734 or any old partial/held data."
   },
   "bounds": {
     "legSeconds": 180,
@@ -551,11 +443,71 @@
     "timingStepMinutes": 120,
     "workflowJobMinutes": 180,
     "sourceTestsMinutes": 15,
-    "packageSmokeMinutesPerArm": 20
+    "packageSmokeMinutesPerArm": 20,
+    "traceSeconds": 60,
+    "traceBytes": 8388608,
+    "traceComparisonSeconds": 60,
+    "raceHelperSeconds": 30,
+    "raceTestSeconds": 120
   },
-  "provenance": "Exact clean A/B commit+tree and equal native/Cargo/lock/build-tool inputs. Build JS separately. Build one common native addon from A per host, hash it, copy exact bytes to B and stage through existing stage-host-native script. Root+matching native tarballs from package:smoke for each arm installed offline in separate neutral consumers using isolatedConsumerEnv and --ignore-scripts --omit=optional. Both versions0.21.1, source pins, full dist/addon hashes, tarballSHA512 and lockintegrities verified before/after every child, plus final source/dist/native recheck. Record Node24.21.0,pnpm12.4.2,Rust/LLVM hashes,OS/kernel/CPU/availableParallelism/FS/Windowsvolume. Shared native bytes reduce irrelevant nativebuild variance; the changed TSdist must never be shared.",
-  "qualification": "Run focused safety-inventory on eachhost+arm with requirednative (candidateowner regression onlyB; commonbaseline suite exactsame). Both package:smoke runs plus installed qualify.mjs rows. Windows actual8 native denial rows required; simulated platform tests complementary. Existing/no-parent mkdirfalse/deniedprefix/refusal and atomiccollision retain sentinels and no temp names. Product builds/tests happen only remotely under parent authorization.",
-  "processes": "Linux uses unchanged reviewed step-owner/bounded/settlement controls. Windows uses narrow suspended-start JobObject owner with direct file handles; separately managed-review before dispatch. All steps must join root and descendantjob/group before nextleg/artifacts; any missing settlement blocks success. Build/tool steps may use standard bounded GHAsteps; timed child is freshNode perleg.",
+  "provenance": "Exact clean pinned A/B worktrees; only CHANGELOG.md, src/native-policy-parent.ts and the new race test may differ. Build JS separately and use one verified unchanged A native addon perhost, staged byte-identically intoB. Both versions0.21.1. Smoke and install actual root+host-native tarballs into separate isolated consumers, verify source/tarballSHA512/dist/declaration/native/lock hashes before/after children and at final. Preserve tool versions and actual Node22/24 binary hashes. Race overlay exists only during its disclosed source-test phase and is removed before packaging/timing.",
+  "qualification": "Retain the proven Linux common suite. native-policy-parent-owner.test.ts is now unchanged in BOTH arms. Run the new race regression in BOTH arms on both exact Node versions using the hash/identity/attempt-bound temporary A test overlay, removed before package binding and timing. Require one pass/no skip in each race report. Both package:smoke runs plus unchanged38-row installed qualifier perarm; actual native required.",
+  "processes": "Exact proven Linux bounded.py, settlement_control.py and step-owner.py bytes are reused. Parent integration owns the serial trace phase and a cancellation-shielded source-race cleanup coordinator. Every started request must have a joined receipt before collection.",
   "publication": "Archive only settled private evidence; retain all failed/incomplete receipts. On failure stop first, no laterlegs. Parent carrier must validate control receipts and finalized archive before upload, exclude workspace fixtures/node_modules/cargo targets.",
-  "idle": "Before timing only, parent ensures no concurrent build/test/workloads; record host telemetry. No automated rerun or adaptive perleg wait."
+  "idle": "Before timing only, parent ensures no concurrent build/test/workloads; record host telemetry. No automated rerun or adaptive perleg wait.",
+  "publicSyscallProof": {
+    "runtimes": [
+      "v22.23.2",
+      "v24.21.0"
+    ],
+    "rows": [
+      {
+        "id": "affected",
+        "relative": "./parent/value",
+        "policy": "mutationSymlinks:reject",
+        "expectedParentDescriptorMetadataDeltaBMinusA": -1
+      },
+      {
+        "id": "retained",
+        "relative": "parent/value",
+        "policy": "mutationSymlinks:reject",
+        "expectedParentDescriptorMetadataDeltaBMinusA": 0
+      },
+      {
+        "id": "no-policy",
+        "relative": "parent/value",
+        "policy": "absent",
+        "expectedParentDescriptorMetadataDeltaBMinusA": 0
+      }
+    ],
+    "selectedCalls": 12,
+    "comparisons": 6,
+    "call": "One await safe.write(relative,\"synthetic payload\",{mkdir:false,durable:false,...policy}) per runtime/role/row, fresh installed consumer process and fixture. No timed loop/warmup campaign.",
+    "setup": "Same common non-consumer cwd and same private base for all traced probes. Fixed ASCII mkdtemp prefix + six-character suffix gives equal byte-length A/B roots. Public Root.create({mkdir:false,durable:false,mode:0o600}) creates the required outside sentinel through the unchanged no-policy native route and settles before markers; it primes the actual addon, not the affected policy write. Setup and all verification/cleanup outside marker interval. No native/fs replacement or write warmup campaign.",
+    "capture": "strace -f -ttt -yy -s1024 -v -e abbrev=execve,execveat -e trace=%file,fstat,close,write,fchmod,fsync,fdatasync,dup,dup2,dup3,fcntl; 8MiB RLIMIT_FSIZE. Exec environment remains abbreviated despite full metadata structures.",
+    "markers": "Exactly one synchronous successful fd2 write of FS_SAFE_PARENT_BEGIN <row>\\n and FS_SAFE_PARENT_END <row>\\n around selected awaited public call. Parse all TIDs and unfinished/resumed records.",
+    "semantics": "Track exact admitted parent open/dup/close lifetimes using descriptor path and stage dirfd ancestry, never integer alone. Count fstat and empty-path AT_EMPTY_PATH statx/newfstatat as descriptor metadata while retaining raw syscall spellings/flags. Validate captured/named dev+ino within each arm; fresh fixture identities/times are not compared literally across arms.",
+    "acceptance": "Affected pair must have exactly one removable admitted-parent descriptor metadata read after initial capture+receipt named check and before a retained named no-follow capture fence preceding stage creation. The final named parent fence before publication also remains. All other normalized metadata/canonicalization/create/rename/close sequence is identical. Controls require delta0 and identical sequences. Exact public bytes/mode0600/sentinel/names and fixture cleanup pass both. Any unexpected sequence stops/report; no automatic replay or reinterpretation as speedup.",
+    "limitations": "Syscalls do not expose JS await boundaries. The real-native instrumented race test checks rejection/one close/no stage/sentinels, but a later assertCurrent can also reject; source review and full trace sequence jointly attest the retained immediate named fence."
+  },
+  "raceRegression": {
+    "contract": "race-regression-contract.json",
+    "helper": "run-race-regression.py",
+    "versions": [
+      "v22.23.2",
+      "v24.21.0"
+    ],
+    "roles": [
+      "A",
+      "B"
+    ],
+    "expectedReports": 4,
+    "expectedPerReport": {
+      "passed": 1,
+      "pending": 0,
+      "failed": 0
+    },
+    "reportNames": "source-race-A-node22.json, source-race-B-node22.json, source-race-A-node24.json, source-race-B-node24.json",
+    "attempt": "Fresh uuid.uuid4().hex supplied to prepare and unconditional cleanup after all test/helper groups settle. Do not adopt stale evidence or unknown overlays."
+  }
 }

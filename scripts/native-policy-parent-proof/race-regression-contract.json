@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "study": "parent-captured-identity",
+  "execution": "Parent-integrated remote source-race qualification. The parent workflow owns process bounds, runtime invocation, cleanup and all acceptance gates.",
+  "sourcePins": {
+    "A": {
+      "commit": "a4571cde36b661fcbf4318be6348d721ea533963",
+      "tree": "5240eaa0433bc07f3aa5432ad893e5564f55dc00"
+    },
+    "B": {
+      "commit": "c5a818758b3cc454c451cd01339f5757d851f7df",
+      "tree": "4fc37c7148656326f91d3925f8c52b89f3d37636"
+    }
+  },
+  "test": {
+    "path": "test/native-parent-captured-identity.test.ts",
+    "sha256": "4bd0c153a8aa02040a32b231fd6d0c2717b61760a05b349478c4982db3aebb5e",
+    "gitBlob": "ea3943ea81e8c459c0958b096402af1d999c7469",
+    "bytes": 3237,
+    "name": "rejects a parent name replaced after its descriptor receipt was accepted"
+  },
+  "interface": {
+    "prepare": "python run-race-regression.py prepare A_SOURCE B_SOURCE EVIDENCE_DIR ATTEMPT_TOKEN",
+    "cleanup": "python run-race-regression.py cleanup A_SOURCE B_SOURCE EVIDENCE_DIR ATTEMPT_TOKEN",
+    "evidenceDirectory": "Fresh dedicated child outside both sources, for example WORK/evidence/race-regression. Prepare creates it exclusively.",
+    "attemptToken": "Parent generates one fresh uuid.uuid4().hex per qualification attempt and passes the same 32 lowercase hex characters to prepare and finally cleanup. Never reuse a token. Prepare immediately records token and evidence-directory identity in attempt.json after exclusive mkdir. Cleanup requires that receipt before any source or evidence write; failed exclusive mkdir cannot cause adoption of an earlier overlay or receipt directory.",
+    "processes": "Both helper commands run under the existing bounded owner. The helper only invokes synchronous Git metadata subprocesses, which inherit the enclosing group. It adds no deadline or process group. Parent must join every started test/helper process group before cleanup.",
+    "exclusiveSources": "A and B are task-owned separate checkouts. Parent keeps them exclusive during the phase and quiescent after joining all helper/test groups before cleanup. Identity/hash inspection followed by unlink is not an atomic adversarial-unlink primitive against unrelated concurrent writers.",
+    "testInvocationPerArm": [
+      "pnpm",
+      "test",
+      "test/native-parent-captured-identity.test.ts",
+      "--reporter=json",
+      "--outputFile=ABSOLUTE_EVIDENCE/source-race-ROLE.json"
+    ],
+    "requiredEnvironment": {
+      "FS_SAFE_NATIVE_MODE": "require"
+    },
+    "parentSequence": [
+      "After independent JS builds and verified common real native addon staging, run prepare in a fresh bounded step.",
+      "Run the exact named test in A and B as separate existing-owner bounded steps. Stop the study on either failure; never advance to packaging or timing after incomplete qualification.",
+      "In an unconditional finally path, after every started helper/test group has settled, attempt cleanup even when prepare or either test failed or timed out. Do not replace a primary failure with a cleanup result.",
+      "Require prepared.json state complete, both JSON reports successful with exactly the named one passed test and no skipped/pending/failed tests, and cleanup.json state complete with overlayRemoved=true, overlayAbsent=true, cleanSources=true. Both helper receipts must bind the current attempt token.",
+      "Revalidate clean pinned A/B source state before package smoke, consumer binding, timing, and final provenance. The overlay is never a package/build/timing input."
+    ]
+  },
+  "overlay": {
+    "baseline": "Only during the dedicated race phase, A receives B's exact Git-bound test bytes at the original relative filename as one disclosed untracked file. No tracked/index/source file is changed.",
+    "candidate": "B uses its pinned tracked test without modification.",
+    "ownership": "Before creation, persist current attempt token, exact source/root/test-directory identities, pins, test hash and intent. Create exclusively with no symlink following; persist the new file identity and attempt token before writing. Cleanup rejects a different attempt token and unlinks only that same regular single-link inode with the complete frozen test hash, under the same parent identity.",
+    "partialFailure": "Always attempt cleanup. If creation was interrupted before an ownership receipt, or bytes/identity changed or are partial, preserve the file and report failure. An unresolved overlay invalidates the study and blocks packaging/timing; never recursively delete or reset the source to hide it."
+  },
+  "claims": [
+    "The exact regression is expected to pass on both A and B; it checks retention of a security invariant rather than an A-fails/B-passes bug fix.",
+    "The test executes real filesystem operations and the real native addon, while spies/hooks wrap createStagedFile/closeOwnedFd and replace the parent pathname immediately after the real describeStagedDirectory succeeds. It is explicitly instrumented source-test evidence, not mock-free installed API or timing evidence.",
+    "Both arms must reject path-mismatch, close the retained native descriptor exactly once with subsequent EBADF, avoid native stage creation, and retain the original and replacement sentinel directories unchanged.",
+    "This single race does not uniquely isolate describePosixParent's immediate named fence because later assertCurrent(complete) can also reject the replacement. Source review and direct syscall evidence separately support retention of the fresh named-path identity check."
+  ],
+  "limits": [
+    "Linux with required native loading only. No Windows, macOS, Bun, exhaustive scheduling, or general race-freedom claim.",
+    "Product compilation, tests, package installation and benchmarks run only remotely. Local packet preparation and source review perform no product execution."
+  ]
+}

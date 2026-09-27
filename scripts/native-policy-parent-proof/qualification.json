@@ -3,18 +3,21 @@
   "mode": "require",
   "commonFiles": [
     "test/native-windows-policy-parent.test.ts",
-    "test/native-parent-admission-close.test.ts",
-    "test/native-parent-native-observation.test.ts",
     "test/pinned-mutation-fast-path.test.ts",
     "test/pinned-mutation-receipt-walk.test.ts",
     "test/native-mutation-policy-admission.test.ts",
     "test/native-policy-directory-observation.test.ts",
+    "test/native-parent-admission-close.test.ts",
+    "test/native-parent-native-observation.test.ts",
     "test/root-native-windows-policy.test.ts",
-    "test/pinned-mutation-shared-eligibility.test.ts"
-  ],
-  "candidateOnlyFiles": [
+    "test/root-copy-windows-publication.test.ts",
+    "test/native-pinned-write-falsy-close.test.ts",
+    "test/staged-file-failures.test.ts",
+    "test/pinned-mutation-shared-eligibility.test.ts",
+    "test/windows-native-fd-bridge.test.ts",
     "test/native-policy-parent-owner.test.ts"
   ],
+  "candidateOnlyFiles": [],
   "linuxAdjacent": [
     {
       "file": "test/staged-file-failures.test.ts",
@@ -22,27 +25,22 @@
       "requiredPasses": 3
     }
   ],
-  "windowsAdjacent": [
-    {
-      "file": "test/windows-native-fd-bridge.test.ts",
-      "pattern": "reports direct-child creation, closes its transient handle, and rejects nested names|returns a descriptor that Node reads and stats before its native owner closes it",
-      "requiredPasses": 2
-    },
-    {
-      "file": "test/root-copy-windows-publication.test.ts",
-      "pattern": "retains a raced winner and an atomic-create admission close failure",
-      "requiredPasses": 1
-    }
-  ],
   "contracts": [
-    "Compare all common test fullname/status pairs between A/B on the sameplatform; candidate10 ownercases must passB.",
-    "Linux-only observation/receipt nativegroups must actually execute on Linux; Windows-specific policy-eligibility groups may skipLinux. Windows must execute8 bundled native denialrows and nativefd bridgecases; POSIX-only groups may skipWindows. Missing addon is never acceptable.",
-    "Focused internal simulated-platform/native-loader tests are safety evidence, explicitly separate from real installed package timings. Timed calls use no mocks or testhooks.",
-    "Perarm package:smoke with FS_SAFE_EXPECTED_SOURCE_COMMIT; manifestsandtarballs feed exact isolated install and bind-consumer.",
-    "Installed qualifier must complete38rows onLinux or34onWindows perarm (matrix16/12 success +4partialsuccess +4all-missing success +12pre-mutationrefusals +2createcollisions). Each validates expectedentries, copy-source preservation and cleanup before removal."
+    "Compare common source-test fullname/status pairs between A/B on Linux. Existing native-policy-parent-owner10 cases execute in both.",
+    "Linux native receipt/observation groups must actually execute. Expected Windows-only skips remain explicit; missing native addon is never an acceptable skip.",
+    "New race reports require exactly1 named pass each on A/B Node22/24 and zero skipped/pending/failed. Owned baseline overlay cleanup must complete before package smoke/binding/timing.",
+    "Both package:smoke artifacts bind the exact pair and corresponding common native bytes. Existing38-row Linux installed qualifier remains unchanged perarm.",
+    "Trace consumers call the real public installed package with no mocks/hooks. Each of six runtime/row comparisons passes declared metadata/fence/publication/close invariants before timings."
   ],
   "limits": [
-    "Linux is the required POSIX qualification target because receipt-walk native tests intentionally load addon only onLinux; this protocol makes no macOSruntimeclaim.",
-    "Focused tests and managed source review complement installed behaviors; not exhaustive race/scheduling proof. Existing newowner tests cover child/previous-parent-close combinations and queued authorityrevocation; complete-parent paired failures/falsy/session-disposal edge expansion remains a maintainer judgment, not a performance result."
-  ]
+    "Linux-only qualification; Windows route unchanged and normal CI remains required.",
+    "No exhaustive race/scheduling or general latency claim. Old studies and values remain frozen and excluded."
+  ],
+  "raceRegression": {
+    "file": "test/native-parent-captured-identity.test.ts",
+    "sha256": "4bd0c153a8aa02040a32b231fd6d0c2717b61760a05b349478c4982db3aebb5e",
+    "sourceInstrumentation": "Real addon with deterministic spies/hooks; separate from unmodified installed syscall proof",
+    "requirePassBothArmsAndNodeVersions": true,
+    "reports": "source-race-A-node22.json, source-race-B-node22.json, source-race-A-node24.json, source-race-B-node24.json"
+  }
 }

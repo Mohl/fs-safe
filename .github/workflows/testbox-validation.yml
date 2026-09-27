@@ -1,4 +1,4 @@
-name: Native parent traversal qualification
+name: POSIX parent descriptor qualification
 
 on:
   workflow_dispatch:
@@ -8,13 +8,13 @@ permissions:
 
 jobs:
   qualify:
-    name: Paired native parent traversal (${{ matrix.os }})
+    name: Paired POSIX parent identity (${{ matrix.os }})
     runs-on: ${{ matrix.os == 'windows-latest' && 'fs-safe-windows-16core' || matrix.os }}
     timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
+        os: [ubuntu-latest]
     defaults:
       run:
         shell: bash
@@ -28,20 +28,24 @@ jobs:
       - name: Check out baseline
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: 305ff575ce134bb596c0eb4bc9205fac8575a884
+          ref: a4571cde36b661fcbf4318be6348d721ea533963
           path: A
           persist-credentials: false
 
       - name: Check out candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: 0aa0fa5ee942d117abfda15b1b93aa6cf732310e
+          ref: c5a818758b3cc454c451cd01339f5757d851f7df
           path: B
           persist-credentials: false
 
-      - name: Verify Windows runner
-        if: matrix.os == 'windows-latest'
-        uses: ./carrier/.github/actions/verify-windows-ci-runner
+      - name: Set up Node 22 for syscall comparison
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.23.2
+
+      - name: Retain Node 22 executable
+        run: printf 'NODE22=%s\n' "$(node -p 'process.execPath')" >> "$GITHUB_ENV"
 
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -56,6 +60,15 @@ jobs:
 
       - name: Set up portable archive LLVM
         uses: ./carrier/.github/actions/setup-archive-llvm
+
+      - name: Set up syscall tracing
+        run: |
+          set -euo pipefail
+          if ! command -v strace >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y strace
+          fi
+          strace -V
 
       - name: Prepare independent build roots
         timeout-minutes: 5
@@ -74,10 +87,12 @@ jobs:
           work.mkdir()
           (work / 'evidence').mkdir()
           tools = {'python': {'version': sys.version, 'path': sys.executable}}
-          for tool in ('node', 'pnpm', 'cargo', 'rustc'):
+          for tool in ('node', 'pnpm', 'cargo', 'rustc', 'strace'):
               resolved = shutil.which(tool)
               assert resolved, tool
               tools[tool] = {'path': resolved, 'sha256': hashlib.sha256(pathlib.Path(resolved).read_bytes()).hexdigest()}
+          node22 = pathlib.Path(os.environ['NODE22'])
+          tools['node22'] = {'path': str(node22), 'sha256': hashlib.sha256(node22.read_bytes()).hexdigest()}
           for key in ('CC_wasm32_unknown_unknown', 'AR_wasm32_unknown_unknown'):
               resolved = os.environ[key]
               tools[key] = {'path': resolved, 'sha256': hashlib.sha256(pathlib.Path(resolved).read_bytes()).hexdigest()}
@@ -125,26 +140,27 @@ jobs:
           for arm in A B; do
             (
               cd "$arm"
-              pnpm test test/native-windows-policy-parent.test.ts test/pinned-mutation-fast-path.test.ts test/pinned-mutation-receipt-walk.test.ts test/native-mutation-policy-admission.test.ts test/native-policy-directory-observation.test.ts test/native-parent-admission-close.test.ts test/native-parent-native-observation.test.ts test/root-native-windows-policy.test.ts test/root-copy-windows-publication.test.ts test/native-pinned-write-falsy-close.test.ts test/staged-file-failures.test.ts test/pinned-mutation-shared-eligibility.test.ts test/windows-native-fd-bridge.test.ts --maxWorkers=1 --retry=0 --reporter=json --outputFile "$PAIR_WORK/evidence/source-$arm.json"
+              pnpm test test/native-windows-policy-parent.test.ts test/pinned-mutation-fast-path.test.ts test/pinned-mutation-receipt-walk.test.ts test/native-mutation-policy-admission.test.ts test/native-policy-directory-observation.test.ts test/native-parent-admission-close.test.ts test/native-parent-native-observation.test.ts test/root-native-windows-policy.test.ts test/root-copy-windows-publication.test.ts test/native-pinned-write-falsy-close.test.ts test/staged-file-failures.test.ts test/pinned-mutation-shared-eligibility.test.ts test/windows-native-fd-bridge.test.ts test/native-policy-parent-owner.test.ts --maxWorkers=1 --retry=0 --reporter=json --outputFile "$PAIR_WORK/evidence/source-$arm.json"
             )
           done
-          cd B
-          pnpm test test/native-policy-parent-owner.test.ts --maxWorkers=1 --retry=0 --reporter=json --outputFile "$PAIR_WORK/evidence/source-owner-B.json"
-          cd ..
           python carrier/scripts/native-policy-parent-proof/check-source-tests.py "$PAIR_WORK"
+
+      - name: Preserve parent-swap rejection on both runtimes
+        timeout-minutes: 15
+        run: python carrier/scripts/native-policy-parent-proof/run-source-race.py "$GITHUB_WORKSPACE" "$PAIR_WORK"
 
       - name: Check installed baseline package
         working-directory: A
         timeout-minutes: 20
         env:
-          FS_SAFE_EXPECTED_SOURCE_COMMIT: 305ff575ce134bb596c0eb4bc9205fac8575a884
+          FS_SAFE_EXPECTED_SOURCE_COMMIT: a4571cde36b661fcbf4318be6348d721ea533963
         run: pnpm package:smoke --output "$PAIR_WORK/packages-A"
 
       - name: Check installed candidate package
         working-directory: B
         timeout-minutes: 20
         env:
-          FS_SAFE_EXPECTED_SOURCE_COMMIT: 0aa0fa5ee942d117abfda15b1b93aa6cf732310e
+          FS_SAFE_EXPECTED_SOURCE_COMMIT: c5a818758b3cc454c451cd01339f5757d851f7df
         run: pnpm package:smoke --output "$PAIR_WORK/packages-B"
 
       - name: Install and bind independent consumers

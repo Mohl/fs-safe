@@ -1,0 +1,71 @@
+PR735 selected-call syscall comparator, schema 1 (source-only packet)
+
+Command:
+  python3 compare-syscalls.py TRACE_A MANIFEST_A PROOF_A TRACE_B MANIFEST_B PROOF_B OUTPUT
+
+One invocation compares one row and one Node version. Six pair invocations
+cover affected/retained/no-policy on v22.23.2 and v24.21.0. OUTPUT must be new.
+Each trace is capped at 8 MiB. The source and all six inputs are hashed.
+No workload, parser fixture, or product execution is part of preparation.
+
+Capture:
+  strace -f -ttt -yy -v -e abbrev=execve,execveat -s1024 \
+    -e trace=%file,fstat,close,write,fchmod,fsync,fdatasync,dup,dup2,dup3,fcntl
+
+The exec abbreviation after -v is required: plain -v would expand startup
+execve environment vectors into the raw evidence. Full stat structures are
+required for dev/ino relations. Launch paired probes from the SAME cwd;
+AT_FDCWD annotations remain literal. A/B roots must have equal UTF-8 byte
+length, preserving exact readlink return counts after pathname substitution.
+One successful fd2 write of each exact marker plus newline brackets the call.
+All TIDs must have successful terminal trace records. Workload-owner process
+settlement remains an independent gate; strace exits do not establish it.
+
+Manifest binds schema=1, row, role, nodeVersion, nodeMajor, source commit/tree
+and dirty=false, nativeSha256, rootPath, parentPath=rootPath+'/parent',
+targetPath=parentPath+'/value', sentinelPath=rootPath+'/outside-sentinel',
+and beginMarker/endMarker='FS_SAFE_PARENT_BEGIN|END '+row. Pins are compiled
+into this comparator. Proof repeats row/role/nodeVersion/nodeMajor/source/
+nativeSha256, requires ok=true and cleanup=true, and has the exact outcome:
+  {bytesHex: hex('synthetic payload'), mode: 384,
+   sentinelHex: hex('outside sentinel retained\n'), names: ['value']}
+The probe separately asserts complete root names and fixture ownership.
+
+Every unfinished/resumed syscall is reconstructed by TID. Descriptor
+ownership is global across Node threads, changes only at successful opens,
+duplication and close, and is not inferred from integer equality alone.
+Overlapping close/reuse, marker-crossing calls, overlapping retained file
+operations, detached tasks, unknown operations and incomplete evidence fail.
+The unique admitted parent is the openat2 RESOLVE_BENEATH|NO_MAGICLINKS lifetime
+used by the exclusive stage create; publication must use it or traced
+F_DUPFD/dup descendants. Parent and stage must close after publication and
+before END. All compared descriptor lifetimes must be wholly inside markers.
+
+Comparison preserves syscall spelling, semantic input flags/masks, return
+values and errnos, output structure field sets, mode/type, links, sizes,
+permissions and other stable metadata outputs. Only the exact synthetic root,
+one evidenced exclusive-created UUID stage basename, TIDs and descriptor
+lifetimes receive path/resource tokens. dev+ino pairs receive bijective object
+tokens; concrete values and timestamps are retained in parsed/raw evidence.
+Fresh-fixture dev/ino/time values are not claimed equal across arms. Parent
+descriptor and named observations must agree within each arm on identity,
+mode/type and nonzero link count. For failed stat/readlink calls, only their
+known untouched output-buffer slot becomes 'unwritten'; the raw address,
+inputs, length/mask/flags, return and errno are retained. Successful readlink
+output text and byte count are validated. Unknown pointer slots fail.
+
+Only successful 8-byte little-endian value-one writes to a traced annotation
+anon_inode:[eventfd] are classified as libuv notifications and excluded from
+the filesystem sequence; each remains in evidence. Other non-stage writes
+inside the bracket fail. No filesystem close or observation is excluded.
+
+Affected A must have exactly one additional successful metadata read of the
+admitted parent descriptor (fstat, or statx/newfstatat empty-name AT_EMPTY_PATH).
+That read must follow initial captured descriptor identity and the first named
+nofollow receipt check, precede another named nofollow capture fence BEFORE
+stage creation, and precede the final parent fence before publication. There
+must be exactly one deletion candidate that makes the full normalized A
+sequence equal B. Both controls require exact sequence equality and delta 0.
+All nondeleted calls, named fences, publication, and closes therefore remain.
+Unexpected evidence is failure without retries, sample selection or retuning.
+This comparator makes no latency or JavaScript await-boundary claim.

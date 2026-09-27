@@ -24,7 +24,10 @@ platform = 'win32' if os.name == 'nt' else 'linux'
 node = shutil.which('node')
 assert node
 processes = evidence / 'processes'
-processes.mkdir()
+assert processes.is_dir(), 'source-race process receipts are required'
+for request in processes.glob('*.request.json'):
+    receipt = json.loads(request.with_name(request.name.replace('.request.json', '.exit.json')).read_text())
+    assert receipt['localProcessSettled'] is True and not receipt['cleanupErrors']
 legs = evidence / 'legs'
 legs.mkdir()
 private = work / 'private-fixtures'
@@ -67,14 +70,14 @@ def verify_sources():
         assert not dirty, role
 
 
-def step(label, cap, command, env=None):
+def step(label, cap, command, env=None, cwd=None):
     verify_packet()
     assert not cancelled, 'study cancelled before dispatch'
     failure = None
     returncode = 0
     try:
         if platform == 'linux':
-            bounded.run(processes, label, list(map(str, command)), cap, cwd=os.getcwd(), env=env)
+            bounded.run(processes, label, list(map(str, command)), cap, cwd=cwd or os.getcwd(), env=env)
         else:
             child = subprocess.Popen([sys.executable, str(owner), str(processes), label, str(cap), *map(str, command)],
                                      env=env, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
@@ -128,6 +131,29 @@ try:
         assert len(qualified['rows']) == (38 if platform == 'linux' else 34)
         assert len({row['id'] for row in qualified['rows']}) == len(qualified['rows'])
         assert all(row['passed'] is True for row in qualified['rows'])
+    assert platform == 'linux'
+    traces = evidence / 'syscalls'
+    traces.mkdir()
+    for major, runtime in ((22, os.environ['NODE22']), (24, node)):
+        for row in ('affected', 'retained', 'no-policy'):
+            pair = []
+            for role in ('A', 'B'):
+                consumer, env = consumers[role]
+                prefix = traces / f'node{major}-{row}-{role}'
+                trace, captured, proof = (Path(str(prefix) + suffix)
+                                          for suffix in ('.trace', '.manifest.json', '.proof.json'))
+                step(f'trace-node{major}-{row}-{role}', protocol['bounds']['traceSeconds'],
+                     [sys.executable, packet / 'harness/trace-launch.py', trace, runtime,
+                      packet / 'harness/syscall-probe.mjs', consumer, private, row, major, captured, proof],
+                     env, work)
+                pair.extend((trace, captured, proof))
+            comparison = traces / f'node{major}-{row}-comparison.json'
+            step(f'compare-node{major}-{row}', protocol['bounds']['traceComparisonSeconds'],
+                 [sys.executable, packet / 'harness/compare-syscalls.py', *pair, comparison], cwd=work)
+            result = json.loads(comparison.read_text())
+            assert result['ok'] is True and result['status'] == 'pass'
+            assert result['comparison']['parentFdMetadataDelta'] == (-1 if row == 'affected' else 0)
+    assert not list(private.iterdir()), 'trace fixtures did not settle'
     for index, leg in enumerate(protocol['timing']['schedule']):
         consumer, env = consumers[leg['role']]
         step(f'leg-{index + 1:02d}', protocol['bounds']['legSeconds'],

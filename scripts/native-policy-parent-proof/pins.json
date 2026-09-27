@@ -1,13 +1,13 @@
 {
   "ready": true,
   "A": {
-    "commit": "305ff575ce134bb596c0eb4bc9205fac8575a884",
-    "tree": "5d26ac8455f6440944185c5f74d79d9f6b60602f"
-  },
-  "B": {
-    "commit": "0aa0fa5ee942d117abfda15b1b93aa6cf732310e",
+    "commit": "a4571cde36b661fcbf4318be6348d721ea533963",
     "tree": "5240eaa0433bc07f3aa5432ad893e5564f55dc00"
   },
-  "branch": "codex/native-policy-parent-owner",
-  "executionOwner": "parent only; preparation does not authorize dispatch"
+  "B": {
+    "commit": "c5a818758b3cc454c451cd01339f5757d851f7df",
+    "tree": "4fc37c7148656326f91d3925f8c52b89f3d37636"
+  },
+  "branch": "codex/parent-captured-identity",
+  "executionOwner": "Parent authorization recorded by ready=true; manual workflow dispatch follows source review"
 }

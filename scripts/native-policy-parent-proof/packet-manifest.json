@@ -1,39 +1,46 @@
 {
   "schema": 1,
-  "study": "native-policy-parent-owner",
+  "study": "parent-captured-identity",
   "sourcePins": {
     "A": {
-      "commit": "305ff575ce134bb596c0eb4bc9205fac8575a884",
-      "tree": "5d26ac8455f6440944185c5f74d79d9f6b60602f"
-    },
-    "B": {
-      "commit": "0aa0fa5ee942d117abfda15b1b93aa6cf732310e",
+      "commit": "a4571cde36b661fcbf4318be6348d721ea533963",
       "tree": "5240eaa0433bc07f3aa5432ad893e5564f55dc00"
     },
-    "branch": "codex/native-policy-parent-owner"
+    "B": {
+      "commit": "c5a818758b3cc454c451cd01339f5757d851f7df",
+      "tree": "4fc37c7148656326f91d3925f8c52b89f3d37636"
+    },
+    "branch": "codex/parent-captured-identity"
   },
   "files": {
-    "README.txt": "13023d0ea0c467891f66cf379455f52b7cfc8a088d59d692c2d8ee86b7761bf2",
-    "check-source-tests.py": "8340f1a2095239d73554caf84dd5b308ad1420a87301df9a3bfbcefac9f77e29",
+    "README.txt": "32c8bb354399dffc3f36a761720278248f5b2b7b2bd76c3ae220a7247f4fa8f3",
+    "check-source-tests.py": "535d71b6a0b430f2aef67dfd78d3d7d2b39bf8ad6e00cf58ef4dce146c620970",
     "collect.py": "db5077f4cdbb5bf530e91071869a34379c5c13aac142edd2c138e8b3a67016fd",
     "harness/assess.py": "09b1d57e5f857a8ae8a2b8b0a50c4e2ed5015f5f3a099820dd864d1c41763814",
     "harness/benchmark-leg.mjs": "370f103737c074c0a7184f0b3c67584826046385568cb15fa451eb4d3d192cd4",
     "harness/bind-consumer.mjs": "437858cae33f33642017b793629627d660980e69105abc7ed8a73edd3f754704",
     "harness/bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
+    "harness/compare-syscalls-contract.txt": "2dbd5e928c505052687adb938d199503d8ee8605ef85a1f070000435a894827b",
+    "harness/compare-syscalls.py": "ea525bdd09efeeafcb17d66ec03f37a550828568da607adb3cdd6807c1cf790c",
     "harness/fixture.mjs": "954de53b4e109163bc3feab076b4977602bd308590b59e2b02ff63152ddbfe08",
     "harness/installed.mjs": "2791b2bd2853917c22780648960606a1511f69b24dd0fc869c5f73229f16af43",
     "harness/qualify.mjs": "0b9dc54e911e3484e91d84d3a96ebc8a0028e294807c9ff10d8f36dae5862267",
     "harness/settlement_control.py": "63338a93219e17187fe1db7dc1b5b2d4c0bdc88ad46c7328f58a89c428504ba6",
     "harness/step-owner.py": "233098357c31a2402a20207082077d6bdeda7be19f84cfdf5fe472bb9587707a",
+    "harness/syscall-probe.mjs": "6228e844f249f07051fd20067bd3770bc333c057a57e454c8f16d3eac015aa03",
+    "harness/trace-launch.py": "82124cffe67103e4d10db338eb97334339acd384c8a43d017783eb5201249e50",
     "harness/windows-step-owner.py": "8348c3fa6828954dadb7389ae1db6835282cada8636d8440097196ff5921e509",
-    "pins.json": "36aa1e2c97334b74c636dd87fc9e928f84b7c9952eec627700aca7e6b79fee95",
+    "pins.json": "dd901bee789f1a2bc008b9d4b905262d67c028fe7f5b6c57942a7285936583a7",
     "prepare-consumers.mjs": "8c9af840c4c9c28c109ed340d8f9ab757fd9625fc576e2302cfa8008497cee37",
-    "protocol.json": "ddcb4826547d3fdda27cbf8a129df65b899a95722045474f195ba2f159035899",
-    "qualification.json": "edf6b0e9b27f90b989c2d413b6a6d24667db7276325e1901342a30585d556709",
-    "run-study.py": "e5093d35319a7a94ff57fce81b970ebcadee62dab98db54255f0a19bacca2887",
+    "protocol.json": "3d336d46cf9759cea2f40ed2c7f9f679c6424bc6545b63c9d57e4d5f3c4b7756",
+    "qualification.json": "4d1ce0b5d96ebfd9ce78c8058e12bc95e50db3bcab0a033964ddb2bb8bc0ba7c",
+    "race-regression-contract.json": "765373d9c8f294c02a6865de0c5ff09a034668cb454e9ec201d3cdfe8f76fc2f",
+    "run-race-regression.py": "171ad288c6fe805c8a430cd482ecd94dcdbe49cfe56ce24617b29fbb5a14caf2",
+    "run-source-race.py": "7dfa00ef703efc5d7ecd06c01616b65e752f2beb5465a709be95694ba37131ab",
+    "run-study.py": "5b90842dd1b7c6d8184585cb52dc607327283e9679453ba84435606ea57ea533",
     "share-native.py": "fabfcf275453a22249bb9810ea753360aba1b1e91d30c8ba2de3a6bc3b16d187",
     "verify-installed.mjs": "2b75b4774cb4fcfe01faa55874dfa40fad435be43983654763929f3d8a83208c"
   },
-  "executionGate": "Only parent-authorized execution copy may change pins.ready false to true; source pins and all listed files remain frozen.",
-  "preparationManifestSha256": "88a4eea9e3d25877d91f5a8cc6bd129dc69d72d988b41390e4ea9c15394ee560"
+  "executionGate": "Parent-integrated execution copy; pins.ready records authorization of this exact pair. Manual workflow dispatch follows clean source review. Never merge the validation carrier.",
+  "reuseSourceCommit": "351320f7f3a49fda1944aef1af1aca8fb6114fbb"
 }
