@@ -5,10 +5,17 @@ import type {
   FileLockSyncAcquireOptions,
   FileLockSyncHandle,
 } from "./file-lock-sync.js";
-import { captureRootSyncAcquireOptions } from "./file-lock-sync-root-options.js";
 import { defaultSyncShouldReclaim, foreignSyncHeldLock } from "./file-lock-sync-admission.js";
+import { getFsSafeLockConfig } from "./lock-config.js";
 import type { Root } from "./root-impl.js";
-import { isTransientLockFileDenial, sidecarLockStale } from "./sidecar-lock-policy.js";
+import {
+  isTransientLockFileDenial,
+  sidecarLockStale,
+  validateSidecarLockCompromiseCheckIntervalMs,
+  validateSidecarLockRetryOptions,
+  validateSidecarLockStaleMs,
+  validateSidecarLockTimeoutMs,
+} from "./sidecar-lock-policy.js";
 import {
   serializeSidecarLockPayload,
   type SidecarLockSnapshot,
@@ -22,13 +29,8 @@ import {
   assertFileLockSyncRootPathsCurrent,
   captureFileLockSyncRootAuthority,
   normalizeFileLockSyncTargetWithRoot,
+  type FileLockSyncRootPath,
 } from "./file-lock-sync-root.js";
-import {
-  cleanupCreatedRootSyncLock,
-  FileLockSyncRootArbitrationCollision,
-  tryReuseCurrentRootSyncHeldLock,
-  type FileLockSyncRootArbitration,
-} from "./file-lock-sync-root-arbitration.js";
 import {
   fileLockSyncRootSnapshotStillCurrent,
   type FileLockSyncRootDirectoryReceipt,
@@ -49,8 +51,51 @@ import {
   ensureRootSyncExitCleanupRegistered,
   getRootSyncHeldLocks,
   readRootSidecarSnapshotSync,
+  verifyRootSyncHeldLock,
   type RootSyncHeldLock,
 } from "./file-lock-sync-root-held.js";
+
+class FileLockSyncRootArbitrationCollision extends FsSafeError {
+  constructor() {
+    super("path-mismatch", "file lock arbitration changed during local creation");
+  }
+}
+
+function sameRootLockPath(left: FileLockSyncRootPath, right: FileLockSyncRootPath): boolean {
+  return left.relativePath === right.relativePath && path.relative(left.path, right.path) === "";
+}
+
+export function cleanupCreatedRootSyncLock(
+  lockRootPath: FileLockSyncRootPath,
+  fd: number,
+  receipt: FileLockSyncRootFileReceipt,
+  timer?: NodeJS.Timeout,
+): void {
+  let timerCleanupFailed = false;
+  let timerCleanupError: unknown;
+  try {
+    if (timer) clearInterval(timer);
+  } catch (error) {
+    timerCleanupFailed = true;
+    timerCleanupError = error;
+  }
+  try {
+    fs.closeSync(fd);
+    if (!removeFileLockSyncRootFile(lockRootPath, receipt)) {
+      throw new FsSafeError("path-mismatch", "created sidecar lock changed before cleanup");
+    }
+  } catch (fileCleanupError) {
+    if (timerCleanupFailed) {
+      throw createSuppressedError(
+        timerCleanupError,
+        fileCleanupError,
+        "unpublished lock timer and file cleanup both failed",
+      );
+    }
+    throw fileCleanupError;
+  }
+  if (timerCleanupFailed) throw timerCleanupError;
+}
 
 export function acquireFileLockSyncWithRoot<TPayload extends Record<string, unknown>>(
   targetPath: string,
@@ -61,13 +106,49 @@ export function acquireFileLockSyncWithRoot<TPayload extends Record<string, unkn
   // snapshot that genuine Root before any remaining option or retry getter can
   // mutate its defaults or retained policy inputs.
   const authority = captureFileLockSyncRootAuthority(lockRoot);
-  const options = captureRootSyncAcquireOptions(inputOptions);
+  // Capture every caller-owned option before validation. Retry accessors must
+  // not be revisited by backoff or a callback that mutates the input options.
+  const lockPathInput = inputOptions.lockPath;
+  const staleMsInput = inputOptions.staleMs;
+  const timeoutMsInput = inputOptions.timeoutMs;
+  const retryInput = inputOptions.retry;
+  const staleRecoveryInput = inputOptions.staleRecovery;
+  const reentrantOwner = inputOptions.reentrantOwner;
+  const payloadCallback = inputOptions.payload;
+  const shouldReclaim = inputOptions.shouldReclaim;
+  const shouldRemoveStaleLock = inputOptions.shouldRemoveStaleLock;
+  const parsePayload = inputOptions.parsePayload;
+  const onCompromised = inputOptions.onCompromised;
+  const compromiseCheckIntervalMs = inputOptions.compromiseCheckIntervalMs;
+  const retrySnapshot = retryInput === undefined ? undefined : Object.freeze({
+    retries: retryInput.retries,
+    factor: retryInput.factor,
+    minTimeout: retryInput.minTimeout,
+    maxTimeout: retryInput.maxTimeout,
+    randomize: retryInput.randomize,
+  });
+  const defaults = getFsSafeLockConfig();
+  const defaultRetry = defaults.retry;
+  const retry = retrySnapshot ?? Object.freeze({
+    retries: defaultRetry?.retries,
+    factor: defaultRetry?.factor,
+    minTimeout: defaultRetry?.minTimeout,
+    maxTimeout: defaultRetry?.maxTimeout,
+    randomize: defaultRetry?.randomize,
+  });
+  const timeoutMs = timeoutMsInput ?? defaults.timeoutMs;
+  const staleMs = staleMsInput ?? defaults.staleMs ?? 30_000;
+  const staleRecovery = staleRecoveryInput ?? defaults.staleRecovery;
+  validateSidecarLockRetryOptions(retry);
+  validateSidecarLockTimeoutMs(timeoutMs);
+  validateSidecarLockStaleMs(staleMs);
+  validateSidecarLockCompromiseCheckIntervalMs(compromiseCheckIntervalMs);
   ensureRootSyncExitCleanupRegistered();
   assertNoWindowsPathAlias(targetPath);
-  if (options.lockPath !== undefined) assertNoWindowsPathAlias(options.lockPath);
+  if (lockPathInput !== undefined) assertNoWindowsPathAlias(lockPathInput);
   const resolvedTargetPath = path.resolve(targetPath);
   const normalizedTargetPath = normalizeFileLockSyncTargetWithRoot(authority, resolvedTargetPath);
-  const requestedLockPath = path.resolve(options.lockPath ?? `${normalizedTargetPath}.lock`);
+  const requestedLockPath = path.resolve(lockPathInput ?? `${normalizedTargetPath}.lock`);
   const lockRootPath = admitFileLockSyncRootPath(authority, requestedLockPath);
   // A followed final alias and its admitted canonical spelling name the same
   // sidecar. Derive their arbitration guard from that shared admitted path,
@@ -78,26 +159,42 @@ export function acquireFileLockSyncWithRoot<TPayload extends Record<string, unkn
   const heldLocks = getRootSyncHeldLocks();
   const currentTargetHolder = () => heldLocks.get(normalizedTargetPath) ??
     foreignSyncHeldLock("root", normalizedTargetPath);
-  const arbitration: FileLockSyncRootArbitration = Object.freeze({
-    authority,
-    heldLocks,
-    lockRootPath,
-    normalizedTargetPath,
-    reentrantOwner: options.reentrantOwner,
-  });
+  const tryReuseCurrentRootSyncHeldLock = (): FileLockSyncHandle | undefined => {
+    const held = heldLocks.get(normalizedTargetPath);
+    const reusable = held && !foreignSyncHeldLock("root", normalizedTargetPath) &&
+      reentrantOwner !== undefined &&
+      held.reentrantOwner !== undefined &&
+      reentrantOwner === held.reentrantOwner &&
+      authority.adapter === held.rootAuthority.adapter &&
+      sameRootLockPath(lockRootPath, held.rootPath) &&
+      held.releaseState !== "released";
+    if (!reusable) return undefined;
+    if (!verifyRootSyncHeldLock(held)) {
+      throw new FsSafeError("path-mismatch", "held sidecar lock changed before reentrant reuse");
+    }
+    // Verification can invoke a custom parser. Re-fetch the exact entry before
+    // granting a reference, while retaining supported releasing/exit states.
+    if (heldLocks.get(normalizedTargetPath) !== held ||
+      held.releaseState === "released" || foreignSyncHeldLock("root", normalizedTargetPath)) {
+      throw new FsSafeError("path-mismatch", "held sidecar lock changed during reentrant reuse");
+    }
+    held.refCount += 1;
+    held.revision += 1;
+    return createRootSyncHeldLockHandle(held);
+  };
   if (heldLocks.has(normalizedTargetPath) && !foreignSyncHeldLock("root", normalizedTargetPath)) {
     assertFileLockSyncRootPathsCurrent(guardedPaths);
-    const initiallyReusable = tryReuseCurrentRootSyncHeldLock(arbitration);
+    const initiallyReusable = tryReuseCurrentRootSyncHeldLock();
     if (initiallyReusable) return initiallyReusable;
   }
 
   const acquisition = new SyncLockAcquisition(
-    lockPath, normalizedTargetPath, options.retry, options.timeoutMs,
+    lockPath, normalizedTargetPath, retry, timeoutMs,
   );
   let ownedReclaimGuard: FileLockSyncRootDirectoryReceipt | undefined;
   let reclaimCleanupAttempted = false;
   const reuseCurrentHeld = (): FileLockSyncHandle | undefined =>
-    ownedReclaimGuard ? undefined : tryReuseCurrentRootSyncHeldLock(arbitration);
+    ownedReclaimGuard ? undefined : tryReuseCurrentRootSyncHeldLock();
   const releaseReclaimGuard = (): void => {
     const receipt = ownedReclaimGuard;
     if (!receipt) return;
@@ -129,7 +226,7 @@ export function acquireFileLockSyncWithRoot<TPayload extends Record<string, unkn
         const reused = reuseCurrentHeld();
         if (reused) return reused;
       }
-      const payload = Reflect.apply(options.payload, options.optionsReceiver, []);
+      const payload = Reflect.apply(payloadCallback, inputOptions, []);
       acquisition.assert();
       const { raw, ownershipToken } = serializeSidecarLockPayload(payload);
       acquisition.assert();
@@ -170,9 +267,9 @@ export function acquireFileLockSyncWithRoot<TPayload extends Record<string, unkn
           fd,
           lockPath,
           normalizedTargetPath,
-          parsePayload: options.parsePayload,
+          parsePayload,
           refCount: 1,
-          reentrantOwner: options.reentrantOwner,
+          reentrantOwner,
           releaseState: "active",
           revision: 0,
           rootAuthority: authority,
@@ -181,8 +278,8 @@ export function acquireFileLockSyncWithRoot<TPayload extends Record<string, unkn
           snapshot,
         };
         const returnedHandle = createRootSyncHeldLockHandle(createdHeld);
-        acquisition.monitor(createdHeld, returnedHandle, options.onCompromised,
-          options.compromiseCheckIntervalMs, options.optionsReceiver,
+        acquisition.monitor(createdHeld, returnedHandle, onCompromised,
+          compromiseCheckIntervalMs, inputOptions,
           (timer) => { unpublishedTimer = timer; });
         if (currentTargetHolder() !== undefined) {
           throw new FileLockSyncRootArbitrationCollision();
@@ -238,7 +335,7 @@ export function acquireFileLockSyncWithRoot<TPayload extends Record<string, unkn
         try {
           current = readRootSidecarSnapshotSync(
             lockRootPath,
-            options.parsePayload,
+            parsePayload,
             (openError) => {
               lockFileOpenDenied = isTransientLockFileDenial(openError, lockPath);
             },
@@ -261,12 +358,12 @@ export function acquireFileLockSyncWithRoot<TPayload extends Record<string, unkn
         const snapshot = current.snapshot;
         const nowMs = Date.now();
         let reclaim: boolean;
-        if (options.shouldReclaim) {
-          reclaim = Reflect.apply(options.shouldReclaim, options.optionsReceiver, [{
+        if (shouldReclaim) {
+          reclaim = Reflect.apply(shouldReclaim, inputOptions, [{
             lockPath,
             normalizedTargetPath,
             payload: snapshot.payload,
-            staleMs: options.staleMs,
+            staleMs,
             nowMs,
             heldByThisProcess: false,
           }]);
@@ -276,13 +373,13 @@ export function acquireFileLockSyncWithRoot<TPayload extends Record<string, unkn
             throw new FsSafeError("path-mismatch", "sidecar changed during reclaim policy callback");
           }
         } else {
-          reclaim = defaultSyncShouldReclaim(snapshot, options.staleMs, nowMs);
+          reclaim = defaultSyncShouldReclaim(snapshot, staleMs, nowMs);
         }
         if (reclaim) {
           if (
-            options.staleRecovery === "remove-if-unchanged" &&
+            staleRecovery === "remove-if-unchanged" &&
             snapshot.raw !== undefined &&
-            options.shouldRemoveStaleLock
+            shouldRemoveStaleLock
           ) {
             const guard = createFileLockSyncRootDirectory(reclaimRootPath);
             if (!guard) {
@@ -291,7 +388,7 @@ export function acquireFileLockSyncWithRoot<TPayload extends Record<string, unkn
             }
             ownedReclaimGuard = guard;
             reclaimCleanupAttempted = false;
-            const approved = Reflect.apply(options.shouldRemoveStaleLock, options.optionsReceiver, [{
+            const approved = Reflect.apply(shouldRemoveStaleLock, inputOptions, [{
               lockPath,
               normalizedTargetPath,
               raw: snapshot.raw,
