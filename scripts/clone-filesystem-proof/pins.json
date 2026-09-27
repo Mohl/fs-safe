@@ -1,0 +1,13 @@
+{
+  "ready": false,
+  "branch": "codex/clone-filesystem-admission",
+  "commits": {
+    "A": "0187ca58aba3feddbd15d79a85f441dd30689d22",
+    "B": "1538b2dd47644a592542d5f4ac025614ba8a1ec1"
+  },
+  "trees": {
+    "A": "958fa8e02d3af3c04f3b220f140f3b64d69ad0a8",
+    "B": "8304718ec638e0bfb79454a408564667898590e6"
+  },
+  "note": "Final clean/pushed sources provided by parent; runtime unauthorized pending packet review."
+}

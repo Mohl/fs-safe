@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "study": "clone-filesystem-admission",
+  "sourcePins": {
+    "branch": "codex/clone-filesystem-admission",
+    "commits": {
+      "A": "0187ca58aba3feddbd15d79a85f441dd30689d22",
+      "B": "1538b2dd47644a592542d5f4ac025614ba8a1ec1"
+    },
+    "trees": {
+      "A": "958fa8e02d3af3c04f3b220f140f3b64d69ad0a8",
+      "B": "8304718ec638e0bfb79454a408564667898590e6"
+    }
+  },
+  "files": {
+    "harness/assess.py": "b95923a7dd4ef6255540939f852b0288fe76868cb4292972c338fbe5cfdbad83",
+    "harness/behavior.mjs": "39154fb023098031b0c65724289a04e97d225efa89bf9fc2accaae2cf7cc6ed8",
+    "harness/benchmark-leg.mjs": "53da860b5947b09cb26183661eab469b11e6b9461ddbd7f0aa23fc326a300a72",
+    "harness/bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
+    "harness/clone-supervise.py": "508c4e86e66de188ccc1558d46c17a1b4d5544463d9516f403f5902310cc6ccd",
+    "harness/fixture.mjs": "5e4b974e8156e75e29bd542a5580d453921703f82d7411b650fce761b9cb7d1d",
+    "harness/installed.mjs": "020b615fec626fb501f8e7fdadd2485fdfc821c49209416a7735d801f8744531",
+    "harness/mount-owner.py": "96abb11eaefbe2d3bcff2adcefc4192cc73430659bd1b6b1efef3774d62835fb",
+    "harness/parse-strace.py": "d34f6099a7422e3dcb491de91e214daf8df0d713ed8533c8343623c4c1c03310",
+    "harness/run.mjs": "fa1b270e1effb7603703314e7f3b258c9943b1d2e7b638209bf5e26a32b5101c",
+    "harness/settlement_control.py": "63338a93219e17187fe1db7dc1b5b2d4c0bdc88ad46c7328f58a89c428504ba6",
+    "harness/step-owner.py": "233098357c31a2402a20207082077d6bdeda7be19f84cfdf5fe472bb9587707a",
+    "harness/supervise.py": "9133a948127140b9a9caba8896c6279c4120489e399637ad53a7b5f74785d4b9",
+    "harness/trace-cleanup.mjs": "95800589c98f47a7c6f58ea6660ab8c7f47dc4b541d8de9ed66e1726816e5b1f",
+    "harness/trace-launch.py": "aa19b45c398d678bae364ca62cc3e064ee779e3d1c2dd5627817426929c77c87",
+    "harness/trace-prepare.mjs": "060d30c6f847747810208c5d49b20c8468d43ba0fdbdffe6d0ab276d80045cc6",
+    "harness/trace-probe.mjs": "02272619f68d481657cb607b397f92edcdbb282f1c884bb5f954a0a75b4f3b4b",
+    "harness/xfs-proof.mjs": "939d42611d40ebf12dc16f1bf2b471bc7bb0f74c170ac9f073860fe7e813f94b",
+    "protocol.json": "b666cdd0a45957350e0bc188c0dad4151c9d37380eeaa75b5b0cb7348d584415",
+    "README.txt": "2ca74020e1ffdee8f9648b8f83f97c8b8102af7a08e4d1d1f162e6ef7f2c3c32"
+  },
+  "executionGate": "pins.ready is false; only parent runtime authorization may change it to true"
+}

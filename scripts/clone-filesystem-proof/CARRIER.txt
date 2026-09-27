@@ -1,0 +1,16 @@
+This branch carries the frozen PR732 qualification packet on an ordinary Ubuntu
+GitHub Actions runner. It is validation infrastructure only and is not the PR732
+production branch. Neither source commit, workload, sample count, gate nor
+packet file has changed.
+
+The initial Blacksmith Testbox attempt stopped at an unsupported XFS mount
+before source builds, tests, API calls, traces or timing. Its evidence remains
+separate. The AWS broker readiness read then timed out without an allocation.
+The ordinary Ubuntu CI path has already executed real XFS and Btrfs tests.
+
+The original README's Testbox transport guidance is retained as historical
+packet metadata. This carrier provides the same declared Node/pnpm/LLVM tools,
+a clean detached candidate transport, a separate packet and empty work directory,
+and enables only the reviewed pins.ready gate at runtime. All mounted volumes
+remain owned by the unchanged coordinator. Only its settled results archive is
+uploaded; images and mounted paths are excluded. No release is performed.

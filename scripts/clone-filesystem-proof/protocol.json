@@ -1,0 +1,671 @@
+{
+  "schema": 1,
+  "study": "clone-filesystem-admission",
+  "status": "Executable preparation packet frozen for independent source-only audit; runtime unauthorized; pins.ready remains false.",
+  "sources": {
+    "A": {
+      "commit": "0187ca58aba3feddbd15d79a85f441dd30689d22",
+      "tree": "958fa8e02d3af3c04f3b220f140f3b64d69ad0a8"
+    },
+    "B": {
+      "commit": "1538b2dd47644a592542d5f4ac025614ba8a1ec1",
+      "tree": "8304718ec638e0bfb79454a408564667898590e6"
+    }
+  },
+  "branch": "codex/clone-filesystem-admission",
+  "scope": "Only native/src/clone_unix.rs and changelog differ. Study direct elimination of one repeated parent fstatfs; no prior held-study data or LOC-driven proof tuning.",
+  "independentBuilds": "Run pnpm install --frozen-lockfile, pnpm build, and pnpm native:build independently in exact clean A and B worktrees with separate explicit CARGO_TARGET_DIR values. Hash both native artifacts and their source/build inputs; never copy one native addon into the other arm. Equal JS/package/build-tool inputs except the declared Rust file.",
+  "packages": "Existing pnpm package:smoke for each source with FS_SAFE_EXPECTED_SOURCE_COMMIT. Install each actual root+own host-native tarball into separate neutral consumers using isolatedConsumerEnv; verify all installed dist/native hashes and lockfile integrities.",
+  "filesystems": [
+    {
+      "id": "xfs",
+      "bytes": 2147483648,
+      "mkfs": [
+        "mkfs.xfs",
+        "-q",
+        "-m",
+        "reflink=1"
+      ],
+      "purpose": "correctness, strace, timing"
+    },
+    {
+      "id": "btrfs",
+      "bytes": 2147483648,
+      "mkfs": [
+        "mkfs.btrfs",
+        "-q"
+      ],
+      "purpose": "correctness, strace, timing"
+    },
+    {
+      "id": "xfs-no-reflink",
+      "bytes": 1073741824,
+      "mkfs": [
+        "mkfs.xfs",
+        "-q",
+        "-m",
+        "reflink=0"
+      ],
+      "purpose": "strict-unavailable and auto/never correctness only"
+    }
+  ],
+  "ciReuse": {
+    "source": ".github/workflows/ci.yml:1190-1250",
+    "tools": [
+      "btrfs-progs",
+      "strace",
+      "xfsprogs",
+      "e2fsprogs",
+      "attr",
+      "acl"
+    ],
+    "setup": "Task-owned sparse images and dedicated mount directories; mkfs then sudo mount -o loop and chown runner, matching CI. Supported volumes are2GiB for the fixed larger lifecycle; no-reflink correctness volume1GiB. Ordinary kernel/openat2 lane only.",
+    "sourceTests": "Run real-filesystem clone.test.ts cases on both supported filesystems with required addon. Exclude exactly the single test named joins admitted native writes and retains their descriptors before rejecting cancellation, which substitutes the native loader. Existing filesystem-specific skips must be explicitly enumerated; no missing-native skip accepted. Run native-unix-descriptor-admission.test.ts with the real built addon and no API mocks.",
+    "xfsProof": "Reuse clone-xfs-proof.mjs on reflink=1 and reflink=0 as an installed-package import adapter. Retain extent/shared-storage and independent-write checks; incidental CI milliseconds are excluded from comparative metrics.",
+    "sourceTestExclusion": "Exact negative name filter for joins admitted native writes and retains their descriptors before rejecting cancellation. No other mock test admitted. Source suite allowed skip titles declared in harness/run.mjs and A/B contracts required equal; missing native/support is not an allowed title."
+  },
+  "installedBehavior": "Require actual createCloneSource/copyTree strict success on XFS/Btrfs, exact contents/metadata/symlinks, independent writes, existing-destination rejection, aborted calls, self/descendant rejection, Btrfs ordinary-directory refusal, real unsupported /tmp and XFS no-reflink strict/fallback cases. Validate expected entries before caller-owned fixture deletion. No API mocks.",
+  "syscallProof": {
+    "traces": 12,
+    "calls": "One createCloneSource, one empty strict copyTree, one nested strict copyTree for each A/B on each supported FS. This is separate from timings.",
+    "command": "strace -f -ttt -yy -s512 -e trace=fstatfs,write -o <owned trace> node <installed public probe>",
+    "attribution": "Synchronous fd1 begin/end write markers bracket exactly one awaited public call. Parse all traced threads, including unfinished/resumed pairs, and attribute fstatfs by -yy exact canonical parent/source descriptor path. Require completed calls within the bracket, no unknown fstatfs paths, and successful returns.",
+    "expected": "For all three operations on each FS, parent fstatfs count is A=3/B=2. copyTree source count remains1 in both; createCloneSource has no source count. Raw traces and parser output retained. No elapsed-time conclusions from strace.",
+    "bounds": "60s per trace, cap raw retained trace at8MiB; no tracing during timing.",
+    "initialization": "Untraced trace-prepare.mjs verifies installed/native provenance and supported filesystem, creates the fixed owned source, and performs Btrfs reclamation. Unprivileged traced Node only loads the installed API, checks prepared receipts, brackets one public call, validates, and emits receipt. After traced process settles and parser passes, untraced trace-cleanup.mjs identity/content-checks and removes owned output/source then reclaims. No sudo or other setuid operation is run below unprivileged ptrace."
+  },
+  "timing": {
+    "mode": "require",
+    "filesystems": [
+      "xfs",
+      "btrfs"
+    ],
+    "rows": [
+      {
+        "id": "createCloneSource",
+        "source": "none",
+        "call": "await createCloneSource(destination)"
+      },
+      {
+        "id": "copyTree-empty",
+        "source": "empty public clone source",
+        "call": "await copyTree(source,destination,{clone:\"always\",concurrency:1})"
+      },
+      {
+        "id": "copyTree-small-nested",
+        "source": "three directories (nested, nested/deeper, empty), eight deterministic4096-byte regular files split across depths, one empty file and one literal internal symlink",
+        "call": "await copyTree(source,destination,{clone:\"always\",concurrency:1})"
+      }
+    ],
+    "quartetsPerFilesystem": 8,
+    "legsPerFilesystem": 32,
+    "legsTotal": 64,
+    "samplesPerRow": 5,
+    "iterationsPerSample": 30,
+    "warmupCallsPerRow": 5,
+    "checkedUntimedCallsPerRow": 1,
+    "metric": "callUs",
+    "cells": 6,
+    "measuredPublicCalls": 28800,
+    "sampleMeans": 960,
+    "schedule": [
+      {
+        "block": 1,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 1,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 1,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 2,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 1,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 3,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 1,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 4,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 1,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 1,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 1,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 2,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 1,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 3,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 1,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 4,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 2,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 1,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 2,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 2,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 2,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 3,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 2,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 4,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 2,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 1,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 2,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 2,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 2,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 3,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 2,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 4,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 3,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 1,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 3,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 2,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 3,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 3,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 3,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 4,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 3,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 1,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 3,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 2,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 3,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 3,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 3,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 4,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 4,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 1,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 4,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 2,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 4,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 3,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 4,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 4,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 4,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 1,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 4,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 2,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 4,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 3,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 4,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 4,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 5,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 1,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 5,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 2,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 5,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 3,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 5,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 4,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 5,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 1,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 5,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 2,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 5,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 3,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 5,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 4,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 6,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 1,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 6,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 2,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 6,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 3,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 6,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 4,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 6,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 1,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 6,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 2,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 6,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 3,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 6,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 4,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 7,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 1,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 7,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 2,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 7,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 3,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 7,
+        "filesystem": "xfs",
+        "order": "ABBA",
+        "position": 4,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 7,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 1,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 7,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 2,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 7,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 3,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 7,
+        "filesystem": "btrfs",
+        "order": "ABBA",
+        "position": 4,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 8,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 1,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 8,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 2,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 8,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 3,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 8,
+        "filesystem": "btrfs",
+        "order": "BAAB",
+        "position": 4,
+        "variant": "B",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 8,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 1,
+        "variant": "B",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 8,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 2,
+        "variant": "A",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 8,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 3,
+        "variant": "A",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 8,
+        "filesystem": "xfs",
+        "order": "BAAB",
+        "position": 4,
+        "variant": "B",
+        "rowOrder": "reverse"
+      }
+    ],
+    "interval": "performance.now immediately before one awaited public createCloneSource/copyTree call and immediately after promise settlement. Includes the complete library operation and its internal settlement/fences. Caller output deletion, fixture validation, source setup, mount tools and Btrfs reclamation are outside the interval. No component subtraction or native-only timing claim.",
+    "cleanupBoundary": "Delete each owned output after its public call settles, outside timing. For Btrfs use identity-checked task-owned subvolume deletion; execute btrfs subvolume sync at a fixed untimed boundary before row qualification, after five warmups, and after every30-call sample, identically in A/B. No adaptive reclamation/retry. All output names must be absent before the next call.",
+    "statistics": {
+      "legStatistic": "median of5 sample arithmetic mean callUs values",
+      "quartetRatio": "geometric mean of two B leg medians divided by geometric mean of two A leg medians",
+      "pairedRatio": "geometric mean of8 quartet ratios",
+      "orderRatios": "geometric mean within the four ABBA and four BAAB quartets separately",
+      "bootstrap": "100000 complete-quartet resamples,8 draws with replacement each; xorshift32 seed732, shifts13/17/5, uint32 after each update, index=floor(uint32/2^32*8). Reuse the same deterministic index stream for every FS/operation. Retain no8^8 allocation. One-sided upper95 is nearest-rank percentile ceil(0.95*N)-1."
+    },
+    "gate": {
+      "threshold": 1.05,
+      "pass": "Every cell paired ratio, both order-stratum ratios and upper95 <=1.05; all behavior/syscall/provenance/cleanup gates pass.",
+      "hold": "Any paired or order ratio >1.05 fails the material gate and is held; alone it does not establish a consistent causal slowdown.",
+      "inconclusive": "Point/order ratios pass but upper95 exceeds1.05, or incomplete/invalid evidence.",
+      "discipline": "Retain every accepted sample. No excluded outliers, selective reruns, retuning, count/order/threshold changes or held-study reuse. Full public-call metrics only; syscall-count result reported separately."
+    },
+    "idlePreflight": "Before first timing only: up to24 observations, each a1s /proc/stat interval; <5% busy and load1<0.5*availableParallelism;4s between refused observations. Record every observation; fail without timing if unavailable. Same owner as prior approved process packet.",
+    "fixtureMetadata": "Regular files0640 and directories0750 with fixed1700000000s mtime; symlinks compared for literal target/type/mode/owner. Portable clone:never fallback does not promise symlink timestamp preservation, so symlink timestamps are excluded from cross-policy snapshots.",
+    "evidenceRetention": "Incomplete leg report exists before fixture creation. Cumulative raw30-value samples and means are atomically replaced after every completed sample, outside the public-call intervals and before fixed reclamation. Catchable failure records phase/partial sample/failure; completed status only after all rows, cleanup, and provenance. Abrupt failure retains prior complete samples and invalidates the whole study; no selective reuse."
+  },
+  "mountLifecycle": {
+    "owner": "clone-supervise.py owns the fresh fixture directory outside transport/evidence. It prepares all three mount-owner.py intents before any setup. Coordinator prepare/cleanup use reviewed bounded.run directly, so signals settle their entire owned group; Node setup steps use unchanged asynchronous step-owner.py. Helper children inherit the enclosing owned group with no internal deadline or group.",
+    "setupReceipt": "Record canonical image identity, findmnt mount/source/type, loop-device-to-image association and runner ownership; reject unexpected existing mounts or foreign device associations.",
+    "cleanupOrder": "First join every workload/started step group. Then attempt cleanup independently for xfs, btrfs, xfs-no-reflink even after earlier failure/timeout. Each volume receives normal unmount, verification that no mount references its exact owned loop, detach only its remaining exact image association, and verification mount/loop absence. There is no all-unmounts-before-any-detach requirement. All three cleanup state and process receipts must pass before archive.",
+    "failure": "Cleanup executes after success, product/trace/timing failure, timeout and handled cancellation. Coordinator wraps the reviewed signal handler: workload cancellation delegates its raising/group-settlement behavior; protected transition sets settlement phase, where first late signal records cancellation without raising and masks repeats. Any cancellation blocks pass. Unproven process or mount/device settlement prevents archive and requires parent notification/owned-lease stop. No images/mounted paths enter evidence.",
+    "artifacts": "Archive logs/manifests/traces/measurements only after process and mount/device receipts settle. Keep images outside evidence archive. Provider cleanup is then independently verified terminal."
+  },
+  "bounds": {
+    "workload": "120m plus explicit bounded settlement/mount cleanup/archive reserve;140m client allowance;240m lease/job",
+    "timingLeg": "120s",
+    "sourceTest": "10m",
+    "packageSmoke": "20m",
+    "mountCleanup": "3 independent 30s cleanup steps plus at most7s reviewed settlement each; <=111s within120s reserved. All three attempted even if prior cleanup failed. Signals masked during cleanup.",
+    "archive": "60s",
+    "mountPrepare": "15s per volume plus reviewed settlement, all before setup",
+    "mountSetup": "120s per volume plus reviewed settlement, serial within workload deadline"
+  },
+  "executable": {
+    "entrypoint": "harness/clone-supervise.py WORK TRANSPORT",
+    "workPrefix": "/tmp/fs-safe-clone-admission-",
+    "requiresFreshEmptyWork": true,
+    "parentExecutionGate": "pins.ready must be explicitly changed to true only after audit and runtime authorization; source pins immutable",
+    "traceFileLimitBytes": 8388608,
+    "genericSupervisor": "harness/supervise.py retained byte-identical as reference; clone-supervise.py is the only entrypoint",
+    "providerCleanup": "Parent owns stop and exact Testbox/Actions terminal receipts after collecting settled evidence; no readiness claim substitutes for provider cleanup"
+  }
+}
