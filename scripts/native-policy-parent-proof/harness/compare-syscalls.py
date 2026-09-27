@@ -326,7 +326,18 @@ def annotate_lifetimes(records, begin, end):
         name, args = call["syscall"], call["arguments"]
         relevant = begin["endLine"] < call["startLine"] < end["startLine"]
         if phase == 0:
+            call["markerProcess"] = begin["tid"]
             call["fdRefs"] = {}
+            call["procFdRefs"] = {}
+            if (name == "fcntl" and len(args) >= 2 and args[1] in ("F_GETFD", "F_SETFD")
+                    and call["startLine"] == call["endLine"] < begin["startLine"]):
+                number, annotation = fd_value(args[0])
+                result = syscall_result(call["resultRaw"])
+                if (number not in active and annotation is None
+                        and result["value"] == -1 and result["errno"] == "EBADF"):
+                    # A completed startup probe of a closed fd creates no owner.
+                    call["closedStartupFdProbe"] = True
+                    continue
             for index in fd_positions(call):
                 number, annotation = fd_value(args[index])
                 if number is None:
@@ -352,10 +363,10 @@ def annotate_lifetimes(records, begin, end):
                 if name == "close":
                     life["closing"] = call["startLine"]
             # /proc/self/fd path components also refer to a specific live owner.
-            call["procFdRefs"] = {}
             for arg in args:
-                for match in re.finditer(r"/proc/(?:self|[0-9]+)/fd/([0-9]+)(?=[/\"\s]|$)", arg):
-                    number = int(match.group(1))
+                for match in re.finditer(r"/proc/(self|[0-9]+)/fd/([0-9]+)(?=[/\"\s]|$)", arg):
+                    require(match.group(1) in ("self", str(begin["tid"])), "foreign process fd path is not an owned descriptor")
+                    number = int(match.group(2))
                     require(number in active and active[number].get("closing") is None, "proc-fd path has no unambiguous live owner")
                     call["procFdRefs"][str(number)] = active[number]["id"]
             continue
@@ -405,11 +416,12 @@ def annotate_lifetimes(records, begin, end):
 def path_operand(call, index, lifetimes, dir_index=None):
     path = quoted(call["arguments"][index]).decode("utf-8", "strict")
     if path.startswith("/"):
-        match = re.match(r"^/proc/(?:self|[0-9]+)/fd/([0-9]+)(/.*)?$", path)
+        match = re.match(r"^/proc/(self|[0-9]+)/fd/([0-9]+)(/.*)?$", path)
         if match:
-            life = lifetimes[call["procFdRefs"][match.group(1)]]
+            require(match.group(1) in ("self", str(call["markerProcess"])), "decoded foreign process fd path is not owned")
+            life = lifetimes[call["procFdRefs"][match.group(2)]]
             require(life["openedPath"] is not None, "proc fd has no path")
-            return life["openedPath"] + (match.group(2) or "")
+            return life["openedPath"] + (match.group(3) or "")
         return path
     require(dir_index is not None and dir_index in call["fdRefs"], "relative pathname lacks traced dirfd")
     parent = lifetimes[call["fdRefs"][dir_index]]["openedPath"]
@@ -512,6 +524,7 @@ def inspect_arm(data, manifest, proof, arm):
                         "parentCloseLine": parent_life["closeLine"], "stageCloseLine": stage_life["closeLine"]}
     life_tokens, identity_tokens, excluded = {}, {}, []
     normalized, meta_events = [], []
+    observed_process = False
 
     def life_token(life_id):
         if life_id not in life_tokens:
@@ -520,8 +533,18 @@ def inspect_arm(data, manifest, proof, arm):
 
     def normalize_path(path, call):
         # Substitutions apply to exact rooted paths and the one evidenced stage.
+        proc_fd = re.match(r"^/proc/(self|[0-9]+)/fd/([0-9]+)(?=/|$)", path)
+        if proc_fd:
+            require(proc_fd.group(1) in ("self", str(begin["tid"])), "decoded foreign process fd path cannot be normalized")
+            require(proc_fd.group(2) in call.get("procFdRefs", {}), "decoded proc-fd path lacks an unambiguous live owner")
+            if proc_fd.group(1) != "self":
+                require(observed_process, "numeric proc-fd alias lacks a validated proc-self observation")
         for number, life_id in call.get("procFdRefs", {}).items():
-            path = re.sub(r"/proc/(?:self|[0-9]+)/fd/" + re.escape(number) + r"(?=/|$)", "/proc/self/fd/" + life_token(life_id), path)
+            path = re.sub(r"^/proc/(?:self|" + re.escape(str(begin["tid"])) + r")/fd/" + re.escape(number) + r"(?=/|$)", "/proc/self/fd/" + life_token(life_id), path)
+        process_root = "/proc/" + str(begin["tid"])
+        if path == process_root or path.startswith(process_root + "/"):
+            require(observed_process, "numeric process alias lacks a validated proc-self observation")
+            path = "/proc/$PROCESS" + path[len(process_root):]
         root = manifest["rootPath"]
         if path == root or path.startswith(root + "/"):
             path = "$ROOT" + path[len(root):]
@@ -547,9 +570,14 @@ def inspect_arm(data, manifest, proof, arm):
         meta = metadata_info(call, lifetimes)
         call["metadata"] = meta
         readlink_output = 1 if name == "readlink" else 2 if name == "readlinkat" else None
+        self_link = False
         if readlink_output is not None and call["result"]["value"] >= 0:
             link_bytes = quoted(args[readlink_output])
             require(len(link_bytes) == call["result"]["value"] < int(args[readlink_output + 1]), "readlink result is short, truncated or inconsistent")
+            self_link = quoted(args[readlink_output - 1]) == b"/proc/self"
+            if self_link:
+                require(link_bytes == str(begin["tid"]).encode("ascii"), "proc-self link differs from the observed marker process")
+                observed_process = True
         normalized_args = []
         for index, arg in enumerate(args):
             if index in call["fdRefs"]:
@@ -573,6 +601,8 @@ def inspect_arm(data, manifest, proof, arm):
                 raw = quoted(arg)
                 if name == "write":
                     normalized_args.append({"bytesHex": raw.hex()})
+                elif self_link and index == readlink_output:
+                    normalized_args.append({"process": "$PROCESS"})
                 else:
                     normalized_args.append({"string": normalize_path(raw.decode("utf-8", "strict"), call)})
             else:

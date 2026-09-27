@@ -34,6 +34,8 @@ The probe separately asserts complete root names and fixture ownership.
 Every unfinished/resumed syscall is reconstructed by TID. Descriptor
 ownership is global across Node threads, changes only at successful opens,
 duplication and close, and is not inferred from integer equality alone.
+An unannotated, completed F_GETFD/F_SETFD probe returning EBADF before BEGIN
+does not create a descriptor owner. Real close/reuse overlaps still fail.
 Overlapping close/reuse, marker-crossing calls, overlapping retained file
 operations, detached tasks, unknown operations and incomplete evidence fail.
 The unique admitted parent is the openat2 RESOLVE_BENEATH|NO_MAGICLINKS lifetime
@@ -47,6 +49,9 @@ permissions and other stable metadata outputs. Only the exact synthetic root,
 one evidenced exclusive-created UUID stage basename, TIDs and descriptor
 lifetimes receive path/resource tokens. dev+ino pairs receive bijective object
 tokens; concrete values and timestamps are retained in parsed/raw evidence.
+Exact /proc/<marker-process> components and a successful /proc/self readlink
+whose output equals that observed process ID use a process token. Numeric
+proc-fd paths for any other process fail. Raw readlink byte counts remain exact.
 Fresh-fixture dev/ino/time values are not claimed equal across arms. Parent
 descriptor and named observations must agree within each arm on identity,
 mode/type and nonzero link count. For failed stat/readlink calls, only their
