@@ -16,9 +16,12 @@ async function command(executable, args) {
 export async function privateWorkspace(base) {
   const directory = await fs.mkdtemp(path.join(await fs.realpath(base), 'fs-safe-parent-owner-'));
   if (process.platform === 'win32') {
-    const user = await command('whoami.exe', ['/user', '/fo', 'csv', '/nh']);
+    const systemRoot = process.env.SystemRoot ?? process.env.SYSTEMROOT;
+    assert(systemRoot && path.isAbsolute(systemRoot), 'Windows system root is unavailable');
+    const system32 = path.join(systemRoot, 'System32');
+    const user = await command(path.join(system32, 'whoami.exe'), ['/user', '/fo', 'csv', '/nh']);
     const sid = user.match(/S-1-[0-9-]+/)?.[0]; assert(sid, 'Windows caller SID unavailable');
-    await command('icacls.exe', [directory, '/inheritance:r', '/grant:r', `*${sid}:(OI)(CI)F`]);
+    await command(path.join(system32, 'icacls.exe'), [directory, '/inheritance:r', '/grant:r', `*${sid}:(OI)(CI)F`]);
   } else await fs.chmod(directory, 0o700);
   return directory;
 }

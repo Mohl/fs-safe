@@ -20,7 +20,7 @@
     "harness/benchmark-leg.mjs": "370f103737c074c0a7184f0b3c67584826046385568cb15fa451eb4d3d192cd4",
     "harness/bind-consumer.mjs": "437858cae33f33642017b793629627d660980e69105abc7ed8a73edd3f754704",
     "harness/bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
-    "harness/fixture.mjs": "6b6c3c18f3a8d1f99c622dd0ac49bae5f1a8e6dc64309b71d27d12fd36ab0eaa",
+    "harness/fixture.mjs": "954de53b4e109163bc3feab076b4977602bd308590b59e2b02ff63152ddbfe08",
     "harness/installed.mjs": "f97ae74b763a27ad5734d01585a2f78be867761a4af2bc97b5d80919e4f85ebf",
     "harness/qualify.mjs": "0b9dc54e911e3484e91d84d3a96ebc8a0028e294807c9ff10d8f36dae5862267",
     "harness/settlement_control.py": "63338a93219e17187fe1db7dc1b5b2d4c0bdc88ad46c7328f58a89c428504ba6",
