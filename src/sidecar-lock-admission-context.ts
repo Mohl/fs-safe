@@ -11,7 +11,6 @@ type SidecarAdmissionAncestry = readonly AdmissionIdentity[];
 
 type SidecarAdmissionScope = AdmissionIdentity & {
   ancestry: SidecarAdmissionAncestry;
-  started: boolean;
 };
 
 const EMPTY_ANCESTRY: SidecarAdmissionAncestry = Object.freeze([]);
@@ -43,32 +42,6 @@ export function ancestryHasSidecarAdmission(
     entry.admissions === admissions && entry.normalizedTargetPath === normalizedTargetPath);
 }
 
-function createSidecarAdmissionScope(
-  ancestry: SidecarAdmissionAncestry,
-  admissions: Map<string, object>,
-  normalizedTargetPath: string,
-  token: object,
-): SidecarAdmissionScope {
-  return { active: false, admissions, ancestry, normalizedTargetPath, started: false, token };
-}
-
-function activateSidecarAdmissionScope(scope: SidecarAdmissionScope): void {
-  if (scope.started) throw new Error("sidecar admission scope cannot be reactivated");
-  scope.started = true;
-  scope.active = true;
-}
-
-function deactivateSidecarAdmissionScope(scope: SidecarAdmissionScope | undefined): void {
-  if (scope) scope.active = false;
-}
-
-function runInSidecarAdmissionScope<T>(
-  scope: SidecarAdmissionScope | undefined,
-  callback: () => T,
-): T {
-  return scope?.active ? admissionContext().run(scope, callback) : callback();
-}
-
 export function createSidecarAdmissionController(
   ancestry: SidecarAdmissionAncestry,
   admissions: Map<string, object>,
@@ -81,18 +54,18 @@ export function createSidecarAdmissionController(
     get owns(): boolean { return scope !== undefined; },
     hasToken,
     release(): void {
-      deactivateSidecarAdmissionScope(scope);
+      if (scope) scope.active = false;
       if (hasToken()) admissions.delete(normalizedTargetPath);
       scope = undefined;
     },
     reserve(): void {
       const token = {};
-      scope = createSidecarAdmissionScope(ancestry, admissions, normalizedTargetPath, token);
+      scope = { active: false, admissions, ancestry, normalizedTargetPath, token };
       admissions.set(normalizedTargetPath, token);
-      activateSidecarAdmissionScope(scope);
+      scope.active = true;
     },
     run<T>(callback: () => T): T {
-      return runInSidecarAdmissionScope(scope, callback);
+      return scope?.active ? admissionContext().run(scope, callback) : callback();
     },
   };
 }
