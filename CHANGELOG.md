@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Performance
+
+- **Linux directory cloning:** reuse the admitted filesystem type when creating clone sources and cloning trees, avoiding a duplicate filesystem probe and allocation per operation.
+
 ### Fixes
 
 - **Synchronous atomic writes:** reject deferred `beforeRename` hooks before publication and clean up the owned stage.
