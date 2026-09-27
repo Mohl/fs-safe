@@ -28,14 +28,14 @@ jobs:
       - name: Check out baseline
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: a4571cde36b661fcbf4318be6348d721ea533963
+          ref: 6c3e8130124b26156626efb06119beea9b61c624
           path: A
           persist-credentials: false
 
       - name: Check out candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: c5a818758b3cc454c451cd01339f5757d851f7df
+          ref: 858a7d2c2ecee07fbca697fcf6a11e8beb278112
           path: B
           persist-credentials: false
 
@@ -153,14 +153,14 @@ jobs:
         working-directory: A
         timeout-minutes: 20
         env:
-          FS_SAFE_EXPECTED_SOURCE_COMMIT: a4571cde36b661fcbf4318be6348d721ea533963
+          FS_SAFE_EXPECTED_SOURCE_COMMIT: 6c3e8130124b26156626efb06119beea9b61c624
         run: pnpm package:smoke --output "$PAIR_WORK/packages-A"
 
       - name: Check installed candidate package
         working-directory: B
         timeout-minutes: 20
         env:
-          FS_SAFE_EXPECTED_SOURCE_COMMIT: c5a818758b3cc454c451cd01339f5757d851f7df
+          FS_SAFE_EXPECTED_SOURCE_COMMIT: 858a7d2c2ecee07fbca697fcf6a11e8beb278112
         run: pnpm package:smoke --output "$PAIR_WORK/packages-B"
 
       - name: Install and bind independent consumers

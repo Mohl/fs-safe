@@ -1,7 +1,7 @@
 CAPTURED POSIX PARENT IDENTITY — PARENT EXECUTION COPY
 
-A = a4571cde36b661fcbf4318be6348d721ea533963
-B = c5a818758b3cc454c451cd01339f5757d851f7df
+A = 6c3e8130124b26156626efb06119beea9b61c624
+B = 858a7d2c2ecee07fbca697fcf6a11e8beb278112
 Both package versions: 0.21.1. Linux only; unchanged Windows route remains a CI
 responsibility. Parent owns integration, review, dispatch and disposition.
 No old study data, held result, or partial comparison is an execution input.
@@ -83,7 +83,7 @@ The affected './parent/value' call has policy reject and mkdir:false. Retained
 mutation policy. All use durable:false and the same synthetic bytes. Verification
 and exact owned cleanup occur after END. Failed fixtures remain diagnostic.
 
-Trace cap 60s/8MiB; comparator cap 60s. Launch through existing owned steps,
+Trace cap 60s/32MiB; comparator cap 60s. Launch through existing owned steps,
 not a new supervisor. The trace uses full -v metadata but re-abbreviates execve
 and execveat environments. Preserve that flag order. All-TID reconstruction,
 open/dup/close lifetimes, full within-arm descriptor/named identity evidence,

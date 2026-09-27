@@ -5,12 +5,12 @@
   "sourcePins": {
     "ready": true,
     "A": {
-      "commit": "a4571cde36b661fcbf4318be6348d721ea533963",
-      "tree": "5240eaa0433bc07f3aa5432ad893e5564f55dc00"
+      "commit": "6c3e8130124b26156626efb06119beea9b61c624",
+      "tree": "4394796902af0fe9d2f4f0407f5144b08380427c"
     },
     "B": {
-      "commit": "c5a818758b3cc454c451cd01339f5757d851f7df",
-      "tree": "4fc37c7148656326f91d3925f8c52b89f3d37636"
+      "commit": "858a7d2c2ecee07fbca697fcf6a11e8beb278112",
+      "tree": "c137c4b7e80879df9162137d192aaedc5b40be8d"
     },
     "branch": "codex/parent-captured-identity",
     "executionOwner": "Parent authorization recorded by ready=true; manual workflow dispatch follows source review"
@@ -445,7 +445,7 @@
     "sourceTestsMinutes": 15,
     "packageSmokeMinutesPerArm": 20,
     "traceSeconds": 60,
-    "traceBytes": 8388608,
+    "traceBytes": 33554432,
     "traceComparisonSeconds": 60,
     "raceHelperSeconds": 30,
     "raceTestSeconds": 120
@@ -484,7 +484,7 @@
     "comparisons": 6,
     "call": "One await safe.write(relative,\"synthetic payload\",{mkdir:false,durable:false,...policy}) per runtime/role/row, fresh installed consumer process and fixture. No timed loop/warmup campaign.",
     "setup": "Same common non-consumer cwd and same private base for all traced probes. Fixed ASCII mkdtemp prefix + six-character suffix gives equal byte-length A/B roots. Public Root.create({mkdir:false,durable:false,mode:0o600}) creates the required outside sentinel through the unchanged no-policy native route and settles before markers; it primes the actual addon, not the affected policy write. Setup and all verification/cleanup outside marker interval. No native/fs replacement or write warmup campaign.",
-    "capture": "strace -f -ttt -yy -s1024 -v -e abbrev=execve,execveat -e trace=%file,fstat,close,write,fchmod,fsync,fdatasync,dup,dup2,dup3,fcntl; 8MiB RLIMIT_FSIZE. Exec environment remains abbreviated despite full metadata structures.",
+    "capture": "strace -f -ttt -yy -s1024 -v -e abbrev=execve,execveat -e trace=%file,fstat,close,write,fchmod,fsync,fdatasync,dup,dup2,dup3,fcntl; 32MiB RLIMIT_FSIZE. Exec environment remains abbreviated despite full metadata structures.",
     "markers": "Exactly one synchronous successful fd2 write of FS_SAFE_PARENT_BEGIN <row>\\n and FS_SAFE_PARENT_END <row>\\n around selected awaited public call. Parse all TIDs and unfinished/resumed records.",
     "semantics": "Track exact admitted parent open/dup/close lifetimes using descriptor path and stage dirfd ancestry, never integer alone. Count fstat and empty-path AT_EMPTY_PATH statx/newfstatat as descriptor metadata while retaining raw syscall spellings/flags. Validate captured/named dev+ino within each arm; fresh fixture identities/times are not compared literally across arms.",
     "acceptance": "Affected pair must have exactly one removable admitted-parent descriptor metadata read after initial capture+receipt named check and before a retained named no-follow capture fence preceding stage creation. The final named parent fence before publication also remains. All other normalized metadata/canonicalization/create/rename/close sequence is identical. Controls require delta0 and identical sequences. Exact public bytes/mode0600/sentinel/names and fixture cleanup pass both. Any unexpected sequence stops/report; no automatic replay or reinterpretation as speedup.",

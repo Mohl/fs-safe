@@ -16,13 +16,13 @@ import re
 import stat
 import sys
 
-TRACE_LIMIT = 8 * 1024 * 1024
+TRACE_LIMIT = 32 * 1024 * 1024
 JSON_LIMIT = 128 * 1024
 SOURCE_LIMIT = 1024 * 1024
-COMMITS = {"A": "a4571cde36b661fcbf4318be6348d721ea533963",
-           "B": "c5a818758b3cc454c451cd01339f5757d851f7df"}
-TREES = {"A": "5240eaa0433bc07f3aa5432ad893e5564f55dc00",
-         "B": "4fc37c7148656326f91d3925f8c52b89f3d37636"}
+COMMITS = {"A": "6c3e8130124b26156626efb06119beea9b61c624",
+           "B": "858a7d2c2ecee07fbca697fcf6a11e8beb278112"}
+TREES = {"A": "4394796902af0fe9d2f4f0407f5144b08380427c",
+         "B": "c137c4b7e80879df9162137d192aaedc5b40be8d"}
 NODES = {22: "v22.23.2", 24: "v24.21.0"}
 ROWS = {"affected", "retained", "no-policy"}
 PREFIX = re.compile(r"^\s*(?:(?:\[pid\s+(?P<bracket>[1-9][0-9]*)\]|(?P<plain>[1-9][0-9]*))\s+)?(?P<time>[0-9]+\.[0-9]{6})\s+(?P<body>.+)$")

@@ -5,7 +5,7 @@ Command:
 
 One invocation compares one row and one Node version. Six pair invocations
 cover affected/retained/no-policy on v22.23.2 and v24.21.0. OUTPUT must be new.
-Each trace is capped at 8 MiB. The source and all six inputs are hashed.
+Each trace is capped at 32 MiB. The source and all six inputs are hashed.
 No workload, parser fixture, or product execution is part of preparation.
 
 Capture:

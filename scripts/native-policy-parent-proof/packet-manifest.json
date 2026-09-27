@@ -3,38 +3,38 @@
   "study": "parent-captured-identity",
   "sourcePins": {
     "A": {
-      "commit": "a4571cde36b661fcbf4318be6348d721ea533963",
-      "tree": "5240eaa0433bc07f3aa5432ad893e5564f55dc00"
+      "commit": "6c3e8130124b26156626efb06119beea9b61c624",
+      "tree": "4394796902af0fe9d2f4f0407f5144b08380427c"
     },
     "B": {
-      "commit": "c5a818758b3cc454c451cd01339f5757d851f7df",
-      "tree": "4fc37c7148656326f91d3925f8c52b89f3d37636"
+      "commit": "858a7d2c2ecee07fbca697fcf6a11e8beb278112",
+      "tree": "c137c4b7e80879df9162137d192aaedc5b40be8d"
     },
     "branch": "codex/parent-captured-identity"
   },
   "files": {
-    "README.txt": "32c8bb354399dffc3f36a761720278248f5b2b7b2bd76c3ae220a7247f4fa8f3",
+    "README.txt": "423a503eff293125cee28df64bc3566b3ad4a4bf822b2000cb153cfc7f46650a",
     "check-source-tests.py": "535d71b6a0b430f2aef67dfd78d3d7d2b39bf8ad6e00cf58ef4dce146c620970",
     "collect.py": "db5077f4cdbb5bf530e91071869a34379c5c13aac142edd2c138e8b3a67016fd",
     "harness/assess.py": "09b1d57e5f857a8ae8a2b8b0a50c4e2ed5015f5f3a099820dd864d1c41763814",
     "harness/benchmark-leg.mjs": "370f103737c074c0a7184f0b3c67584826046385568cb15fa451eb4d3d192cd4",
     "harness/bind-consumer.mjs": "437858cae33f33642017b793629627d660980e69105abc7ed8a73edd3f754704",
     "harness/bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
-    "harness/compare-syscalls-contract.txt": "2dbd5e928c505052687adb938d199503d8ee8605ef85a1f070000435a894827b",
-    "harness/compare-syscalls.py": "ea525bdd09efeeafcb17d66ec03f37a550828568da607adb3cdd6807c1cf790c",
+    "harness/compare-syscalls-contract.txt": "b034f980672b368a379617c9e08ef17451f39e1148077aa92f321e5e4674ed58",
+    "harness/compare-syscalls.py": "3cab98787b32dcaf9d007c00b2961600d0c56496501395b767b181f8447a3326",
     "harness/fixture.mjs": "954de53b4e109163bc3feab076b4977602bd308590b59e2b02ff63152ddbfe08",
     "harness/installed.mjs": "2791b2bd2853917c22780648960606a1511f69b24dd0fc869c5f73229f16af43",
     "harness/qualify.mjs": "0b9dc54e911e3484e91d84d3a96ebc8a0028e294807c9ff10d8f36dae5862267",
     "harness/settlement_control.py": "63338a93219e17187fe1db7dc1b5b2d4c0bdc88ad46c7328f58a89c428504ba6",
     "harness/step-owner.py": "233098357c31a2402a20207082077d6bdeda7be19f84cfdf5fe472bb9587707a",
     "harness/syscall-probe.mjs": "6228e844f249f07051fd20067bd3770bc333c057a57e454c8f16d3eac015aa03",
-    "harness/trace-launch.py": "82124cffe67103e4d10db338eb97334339acd384c8a43d017783eb5201249e50",
+    "harness/trace-launch.py": "66f524144e28b225c3723ecf8f18cdfdebb087dc6c0a962422a50c07ef3e1275",
     "harness/windows-step-owner.py": "8348c3fa6828954dadb7389ae1db6835282cada8636d8440097196ff5921e509",
-    "pins.json": "dd901bee789f1a2bc008b9d4b905262d67c028fe7f5b6c57942a7285936583a7",
+    "pins.json": "1b3c70f2eaddea02b3c25ec7c36618644f83788a52ed82f08491392f837591b2",
     "prepare-consumers.mjs": "8c9af840c4c9c28c109ed340d8f9ab757fd9625fc576e2302cfa8008497cee37",
-    "protocol.json": "3d336d46cf9759cea2f40ed2c7f9f679c6424bc6545b63c9d57e4d5f3c4b7756",
+    "protocol.json": "dcd98d7bc67a12a22a5de2bf02bf0235a0d6a13feb31d4bbd4a5e67d00cf39ff",
     "qualification.json": "4d1ce0b5d96ebfd9ce78c8058e12bc95e50db3bcab0a033964ddb2bb8bc0ba7c",
-    "race-regression-contract.json": "765373d9c8f294c02a6865de0c5ff09a034668cb454e9ec201d3cdfe8f76fc2f",
+    "race-regression-contract.json": "efeb26bb68ee1a329dd157ec3d483e98aa44a434c9c27769f8c78f6898edaf23",
     "run-race-regression.py": "171ad288c6fe805c8a430cd482ecd94dcdbe49cfe56ce24617b29fbb5a14caf2",
     "run-source-race.py": "7dfa00ef703efc5d7ecd06c01616b65e752f2beb5465a709be95694ba37131ab",
     "run-study.py": "5b90842dd1b7c6d8184585cb52dc607327283e9679453ba84435606ea57ea533",
