@@ -93,11 +93,50 @@ Unknown calls, ambiguous overlapping retained
 filesystem calls, close/reuse overlap, marker-crossing calls, incomplete or
 detached traces, incomplete object outputs and untracked descriptors fail.
 Only successful 8-byte value-one eventfd wakeups may be excluded from the
-filesystem sequence; each remains in evidence. All compared filesystem
+filesystem sequence; each remains in evidence. In the structured strace
+eventfd annotation, only the validated eventfd-count may vary within a
+lifetime; eventfd-id and eventfd-semaphore remain exact. Every structured
+annotation and raw counter is retained with its observed trace line. Both
+this form and anon_inode:[eventfd] identify eligible wakeups; changing
+between forms does not establish descriptor identity. All compared filesystem
 lifetimes must begin and close inside the selected marker span. The exclusive
 UUID stage must use the admitted parent, and publication must use the same
 capability or its traced dup family. Stage and admitted parent close after
 publication and before END.
+
+The fixture's descriptor census is classified separately only for completed
+single-line readlink calls by the marker thread wholly outside BEGIN/END.
+The decoded input must be exactly /proc/self/fd/N, or the exact numeric marker
+process already evidenced by a successful, validated /proc/self readlink.
+Unknown descriptors may report only complete, untruncated eventpoll, io_uring,
+eventfd anon-inode targets or pipe:[canonical positive inode] targets. These
+observations create no owner or proc-fd attribution. Their exact targets and
+occupied numbers remain guarded until a successful traced close; changed
+targets, disagreeing direct annotations, silent reuse and assumed exec or dup
+retirement fail. Raw calls, targets and results remain in outOfSpanFdCensus.
+ENOENT is classified only when the number's latest traced owner was this
+process's exact enumeration directory, opened read-only with O_DIRECTORY and
+successfully closed by the marker thread on the same side of the selected
+span. No active owner, anonymous occupancy, intervening lifetime or reuse is
+allowed. Its untouched output pointer and exact open/close evidence remain in
+the report. No selected call, filesystem target, foreign PID, path suffix,
+unknown resource or generic failed probe receives either classification.
+The startup EBADF fcntl exception cannot contradict an occupied anonymous
+census observation.
+
+Component probes permit the concrete O_LARGEFILE flag added by the locked
+rustix Linux openat backend. O_PATH, O_NOFOLLOW and O_CLOEXEC remain required;
+unsafe or unknown extra flags fail. O_LARGEFILE remains literal in the
+normalized syscall, so any A/B flag difference still fails comparison.
+
+The exact common fixture parent may use the distinct $FIXTURE_PARENT token
+only when rootPath is its row-0 child, outsidePath is its outside-0 child, and
+it is directly beneath the private-fixture argument bound by both the observed
+probe invocation and launcher receipt. Its basename must match the probe's
+fs-safe-checked-kind- plus six alphanumeric mkdtemp suffix. This substitution
+matches exact path equality only: no descendant, sibling, foreign path,
+traversal spelling or other ancestor is normalized by this rule. Raw paths,
+all calls, identity observations and the exact binding remain in evidence.
 
 Deletion attribution is structural, never just aggregate counting. Each
 expected component has exactly one identified O_PATH|O_NOFOLLOW|O_CLOEXEC

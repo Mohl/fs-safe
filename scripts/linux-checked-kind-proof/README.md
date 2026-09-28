@@ -1,6 +1,6 @@
 # Linux checked component type — external proof packet
 
-This packet qualifies the three-line Rust optimization pinned in `pins.json`. Both `pins.ready` and `protocol.ready` are **true** for final candidate `e00c407db4e602ace9f6b6040d10a72fa057a300`, following the passed full managed P2 packet review and parent authorization. Its additional `test/api-coverage.test.ts` delta isolates a Windows-only semantic test using the existing device-flush helper and scoped restoration; production behavior, assertions, options and timeouts are unchanged. The parent retains the final small-delta review, transport and dispatch. No product tests or timings have run at this configuration update.
+This packet qualifies the three-line Rust optimization pinned in `pins.json`. Both `pins.ready` and `protocol.ready` are **true** for final candidate `e00c407db4e602ace9f6b6040d10a72fa057a300`; each packet revision requires a clean managed P2 review before dispatch. Its additional `test/api-coverage.test.ts` delta isolates a Windows-only semantic test using the existing device-flush helper and scoped restoration; production behavior, assertions, options and timeouts are unchanged. The parent owns transport and dispatch.
 
 The packet is transport-neutral trusted Linux code. The parent's configured Crabbox provider remains authoritative (currently AWS); no workflow or provider change is required. Do not modify or merge the prior #735 carrier. Do not copy one native binary into both arms.
 
@@ -9,6 +9,8 @@ The packet is transport-neutral trusted Linux code. The parent's configured Crab
 Provide clean, task-owned `WORKSPACE/A` and `WORKSPACE/B` at the exact committed heads/trees. Both package versions are 0.21.2, pnpm is 12.4.2, and the runtime paths must supply Node 24.21.0 and Node 22.23.2. Use a nonroot user for preparation and timing; the separate conditional Rust owner intentionally uses root in a private mount namespace. Record actual host allocation, filesystem, tool versions and provider/lease identity. No host migration or runtime change after preflight.
 
 The host must supply pnpm, an existing Rust 1.98.1 toolchain, Python 3, a C compiler, strace, Git, tar, sudo and unshare. `bootstrap-toolchains.py --prepare-only` first installs exact official checksum-verified Node archives and privately copies the existing Rust toolchain, preserving compiler bytes while adding its verified wasm32 std component. It invokes the pinned first-party archive LLVM installer with its own RUNNER_TEMP/GITHUB_ENV. Rustup is not required. The AWS hydration workflow alone does not prepare these tools. No credentials belong in this packet or its proof environment.
+
+Verify the declared pnpm version outside a source checkout too: Corepack's host default supplies the preparation version probe. After the conditional root owner completes and settles its resources, its generated receipts must be readable by the nonroot preparation owner. Ownership correction must preserve their contents, identities and modes and retain a separate receipt.
 
 Toolchain preparation uses the explicit prepare-only switch and a clean exact A or B checkout; it does not require measurement readiness:
 
@@ -40,6 +42,10 @@ The conditional helper reuses verified compiled Rust test binaries. Its six chec
 Mechanism selection is process-cached: every mechanism uses a fresh process. The initial real filter/probe is outside selected-call markers and timing, but retained in trace evidence. ENOSYS and EPERM selection and selected-call sequences are both proved; only ENOSYS is timed because their steady-state fallback is identical after admission. Latency conclusions cover Linux x64 glibc Node 24; Node 22 receives behavior and syscall proof only.
 
 Trace output is privately owned and bounded to 32 MiB. The trace launcher holds an exclusive no-follow output descriptor and invokes strace in the same existing bounded group, using that descriptor through procfs. It records exact runtime/argv, compiled denial wrapper and first-party source hashes in an adjacent launch receipt. Raw exec environments remain abbreviated. No traced durations are used as timing evidence.
+
+The comparator records volatile structured eventfd counters while requiring stable descriptor identity and semaphore mode. Outside the selected call, it classifies only complete main-thread procfs census reads of known anonymous resources and the exact previously closed enumeration handle; observed anonymous occupancy still blocks unclosed descriptor reuse. Component flags may include rustix's `O_LARGEFILE`, which remains literal in A/B comparison. Only the exact invocation-bound common fixture parent receives a separate normalization token; unrelated paths and ancestors remain literal. Selected-call identity, publication, closure and expected metadata-delta checks are unchanged.
+
+This parser revision leaves source pins, workload scripts, process owners and timing gates unchanged. Preserve earlier failed traces and their packet manifest. A complete fresh study may reuse the exact verified builds, packages, installed consumers and conditional receipts after all prior processes settle and failed study outputs are retained without replacement. No prior timing samples may be pooled or excluded.
 
 ## Construction checks and remaining gaps
 

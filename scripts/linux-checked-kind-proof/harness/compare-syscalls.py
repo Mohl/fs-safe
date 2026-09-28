@@ -382,9 +382,73 @@ def opened_cloexec(call):
     return "O_CLOEXEC" in flags.split("|")
 
 
+def eventfd_state(annotation):
+    if annotation is None:
+        return None
+    match = re.fullmatch(r"\{eventfd-count=(0|0x[1-9a-f][0-9a-f]{0,15}), eventfd-id=(0|[1-9][0-9]*), eventfd-semaphore=([01])\}", annotation)
+    if match is None:
+        return None
+    return {"count": match[1], "id": match[2], "semaphore": match[3]}
+
+
+def anonymous_census_target(target):
+    return target in ("anon_inode:[eventpoll]", "anon_inode:[io_uring]", "anon_inode:[eventfd]") or (
+        target is not None and re.fullmatch(r"pipe:\[[1-9][0-9]*\]", target) is not None)
+
+
+def census_readlink(call, begin, end, observed_process):
+    args = call["arguments"]
+    if (call["syscall"] != "readlink" or len(args) != 3 or call["tid"] != begin["tid"]
+            or call["startLine"] != call["endLine"]
+            or not (call["endLine"] < begin["startLine"] or call["startLine"] > end["endLine"])):
+        return None
+    path = quoted(args[0]).decode("utf-8", "strict")
+    match = re.fullmatch(r"/proc/(self|[1-9][0-9]*)/fd/(0|[1-9][0-9]*)", path)
+    if match is None:
+        return None
+    require(match[1] == "self" or (match[1] == str(begin["tid"]) and observed_process), "census process alias is not evidenced")
+    require(re.fullmatch(r"[1-9][0-9]*", args[2]), "census readlink buffer is not a positive integer")
+    result = syscall_result(call["resultRaw"])
+    require(result["annotation"] is None and result["decodedFlags"] is None, "census readlink result has unexpected annotation")
+    observation = {"fd": int(match[2]), "path": path, "result": result,
+                   "phase": "before" if call["endLine"] < begin["startLine"] else "after"}
+    if result["value"] >= 0:
+        target = quoted(args[1])
+        require(len(target) == result["value"] < int(args[2]), "census readlink output is short, truncated or inconsistent")
+        observation["target"] = target.decode("utf-8", "strict")
+    else:
+        require(re.fullmatch(r"0x[0-9a-fA-F]+", args[1]), "failed census readlink output is not an untouched buffer")
+        observation["outputBuffer"] = args[1]
+    return observation
+
+
+def closed_enumeration_owner(number, call, begin, end, lifetimes, open_calls, close_calls, observed_process):
+    life = next((entry for entry in reversed(lifetimes) if entry["fd"] == number), None)
+    require(life is not None and life["id"] in close_calls, "census ENOENT lacks a successfully closed latest owner")
+    opened, closed = open_calls.get(life["id"]), close_calls[life["id"]]
+    require(opened is not None and opened["syscall"] == "openat" and opened["tid"] == closed["tid"] == begin["tid"],
+            "census ENOENT latest owner is not a main-thread enumeration open")
+    args = opened["arguments"]
+    require(len(args) == 3 and "O_DIRECTORY" in args[2].split("|") and "O_RDONLY" in args[2].split("|"),
+            "census ENOENT owner was not opened as a read-only directory")
+    opened_path = quoted(args[1]).decode("utf-8", "strict")
+    match = re.fullmatch(r"/proc/(self|[1-9][0-9]*)/fd", opened_path)
+    require(match is not None and (match[1] == "self" or (match[1] == str(begin["tid"]) and observed_process)),
+            "census ENOENT owner did not open this process enumeration directory")
+    require(life["openedPath"] in ("/proc/self/fd", "/proc/" + str(begin["tid"]) + "/fd")
+            and life["path"] == life["openedPath"], "census ENOENT owner annotation is not the unchanged enumeration directory")
+    require(opened["endLine"] < closed["startLine"] and closed["endLine"] == life["closeLine"] < call["startLine"],
+            "census ENOENT owner was not closed before the probe")
+    require((closed["endLine"] < begin["startLine"] and call["endLine"] < begin["startLine"])
+            or (opened["startLine"] > end["endLine"] and call["startLine"] > end["endLine"]),
+            "census ENOENT owner crosses the selected span")
+    return {"life": life["id"], "openLine": opened["startLine"], "closeLine": closed["endLine"]}
+
+
 def annotate_lifetimes(records, begin, end):
     """The traced Node threads share one fd table. Reject close/reuse overlap."""
     active, lifetimes, open_calls = {}, [], {}
+    census_observations, close_calls, observed_process = {}, {}, False
     events = []
     for call in records:
         events.extend(((call["startLine"], 0, call), (call["endLine"], 1, call)))
@@ -395,11 +459,31 @@ def annotate_lifetimes(records, begin, end):
             call["markerProcess"] = begin["tid"]
             call["fdRefs"] = {}
             call["procFdRefs"] = {}
+            census = census_readlink(call, begin, end, observed_process)
+            if census is not None:
+                number, result = census["fd"], census["result"]
+                if result["value"] < 0:
+                    require(number not in active, "failed census readlink contradicts a live descriptor owner")
+                if number in census_observations:
+                    require(census.get("target") == census_observations[number]["target"], "anonymous census target changed without traced close")
+                if number not in active:
+                    if result["value"] >= 0:
+                        require(anonymous_census_target(census["target"]), "untracked census target is not a recognized anonymous resource")
+                        census["kind"] = "anonymous-resource"
+                        census_observations.setdefault(number, {"target": census["target"], "line": call["startLine"]})
+                    else:
+                        require(result["value"] == -1 and result["errno"] == "ENOENT" and number not in census_observations,
+                                "untracked census failure is not a closed enumeration-directory probe")
+                        census["kind"] = "closed-enumeration-directory"
+                        census["retiredOwner"] = closed_enumeration_owner(number, call, begin, end, lifetimes, open_calls, close_calls, observed_process)
+                    call["fdCensus"] = census
+                    call["result"] = result
+                    continue
             if (name == "fcntl" and len(args) >= 2 and args[1] in ("F_GETFD", "F_SETFD")
                     and call["startLine"] == call["endLine"] < begin["startLine"]):
                 number, annotation = fd_value(args[0])
                 result = syscall_result(call["resultRaw"])
-                if (number not in active and annotation is None
+                if (number not in active and number not in census_observations and annotation is None
                         and result["value"] == -1 and result["errno"] == "EBADF"):
                     # A completed startup probe of a closed fd creates no owner.
                     call["closedStartupFdProbe"] = True
@@ -408,6 +492,10 @@ def annotate_lifetimes(records, begin, end):
                 number, annotation = fd_value(args[index])
                 if number is None:
                     continue
+                if number in census_observations:
+                    require(not (name in ("dup2", "dup3") and index == 1), "dup replacement of an anonymous census observation is not modeled")
+                    target = "anon_inode:[eventfd]" if eventfd_state(annotation) is not None else annotation
+                    require(target == census_observations[number]["target"], "descriptor annotation differs from its anonymous census observation")
                 if name in ("dup2", "dup3") and index == 1 and number not in active:
                     continue
                 if number not in active:
@@ -419,11 +507,20 @@ def annotate_lifetimes(records, begin, end):
                     lifetimes.append(life)
                 life = active[number]
                 require(life.get("closing") is None, "descriptor used while its close is unfinished")
+                eventfd = eventfd_state(annotation)
                 if annotation is not None and life["path"] is not None:
-                    require(annotation == life["path"], "descriptor annotation changed without traced publication")
+                    previous_eventfd = eventfd_state(life["path"])
+                    if eventfd is not None and previous_eventfd is not None:
+                        # The wakeup count changes; eventfd identity and mode must not.
+                        require(eventfd["id"] == previous_eventfd["id"] and eventfd["semaphore"] == previous_eventfd["semaphore"],
+                                "descriptor annotation changed without traced publication")
+                    else:
+                        require(annotation == life["path"], "descriptor annotation changed without traced publication")
                 elif annotation is not None:
                     life["path"] = annotation
                     life["openedPath"] = annotation
+                if eventfd is not None:
+                    life.setdefault("eventfdObservations", []).append({"line": call["startLine"], "annotation": annotation, **eventfd})
                 call["fdRefs"][index] = life["id"]
                 life["references"].append(call["startLine"])
                 if name == "close":
@@ -436,6 +533,13 @@ def annotate_lifetimes(records, begin, end):
                     require(number in active and active[number].get("closing") is None, "proc-fd path has no unambiguous live owner")
                     call["procFdRefs"][str(number)] = active[number]["id"]
             continue
+        if name == "readlink" and len(args) == 3 and quoted(args[0]) == b"/proc/self":
+            result = syscall_result(call["resultRaw"])
+            if result["value"] >= 0:
+                target = quoted(args[1])
+                require(re.fullmatch(r"[1-9][0-9]*", args[2]) and len(target) == result["value"] < int(args[2])
+                        and target == str(begin["tid"]).encode("ascii"), "proc-self observation does not evidence the marker process")
+                observed_process = True
         if name in ("execve", "execveat") and syscall_result(call["resultRaw"])["value"] == 0:
             for number, life in list(active.items()):
                 if life.get("cloexec") is True:
@@ -455,6 +559,7 @@ def annotate_lifetimes(records, begin, end):
         call["result"] = result
         if creates and result["value"] >= 0:
             number = result["value"]
+            require(number not in census_observations, "new descriptor overlaps an unretired anonymous census observation")
             if name in ("dup2", "dup3") and number in active:
                 target = active[number]
                 source = call["fdRefs"].get(0)
@@ -484,6 +589,8 @@ def annotate_lifetimes(records, begin, end):
             require(life["id"] == call["fdRefs"][0], "descriptor close changed owner")
             life["closeLine"] = call["endLine"]
             life.pop("closing", None)
+            close_calls[life["id"]] = call
+            census_observations.pop(number, None)
         elif name in RENAME and result["value"] == 0:
             old, new = rename_paths(call, lifetimes)
             for life in active.values():
@@ -655,7 +762,7 @@ def checked_components(calls, lifetimes, stage, manifest):
         flags = set(call['arguments'][2].split('|'))
         if 'O_PATH' not in flags or 'O_NOFOLLOW' not in flags or 'O_DIRECTORY' in flags:
             continue
-        require(flags <= {'O_RDONLY', 'O_PATH', 'O_CLOEXEC', 'O_NOFOLLOW'} and 'O_CLOEXEC' in flags, 'unexpected component probe flags')
+        require(flags <= {'O_RDONLY', 'O_PATH', 'O_CLOEXEC', 'O_NOFOLLOW', 'O_LARGEFILE'} and 'O_CLOEXEC' in flags, 'unexpected component probe flags')
         life = lifetimes[call['resultLife']]
         probes.append((call, life))
     require([life['openedPath'] for _, life in probes] == expected_paths, 'component probe lifetime/path sequence differs from row contract')
@@ -707,6 +814,28 @@ def checked_components(calls, lifetimes, stage, manifest):
     return summaries, deletions
 
 
+def normalize_fixture_parent(path, manifest, launch):
+    root = manifest["rootPath"]
+    parent = posixpath.dirname(root)
+    if path != parent:
+        return path
+    outside = manifest["outsidePath"]
+    canonical(root)
+    canonical(outside)
+    require(root == parent + "/row-0" and outside == parent + "/outside-0",
+            "fixture-parent normalization requires the generated row-0/outside-0 layout")
+    argv, command = manifest["launch"]["argv"], launch["command"]
+    node_index = 0 if manifest["mechanism"] == "openat2" else 2
+    require(isinstance(argv, list) and len(argv) == 7 and isinstance(command, list) and len(command) == node_index + 8,
+            "fixture-parent normalization lacks a bound probe invocation")
+    base = canonical(argv[2])
+    require(command[node_index + 3] == base and posixpath.dirname(parent) == base,
+            "fixture parent is not directly beneath the bound private-fixture argument")
+    require(re.fullmatch(r"fs-safe-checked-kind-[A-Za-z0-9]{6}", posixpath.basename(parent)),
+            "fixture parent does not have the generated private-workspace name")
+    return "$FIXTURE_PARENT"
+
+
 def inspect_arm(data, manifest, proof, arm, launch):
     records, arm["traceSummary"] = parse_trace(data)
     begin, end, calls = marker_span(records, manifest)
@@ -715,6 +844,7 @@ def inspect_arm(data, manifest, proof, arm, launch):
     arm["calls"] = calls
     lifetimes, open_calls = annotate_lifetimes(records, begin, end)
     arm["lifetimes"] = lifetimes
+    arm["outOfSpanFdCensus"] = [call for call in records if "fdCensus" in call]
     stages = []
     for call in calls:
         if call["syscall"] in OPEN and call["result"]["value"] >= 0:
@@ -781,6 +911,10 @@ def inspect_arm(data, manifest, proof, arm, launch):
         if path == process_root or path.startswith(process_root + "/"):
             require(observed_process, "numeric process alias lacks a validated proc-self observation")
             path = "/proc/$PROCESS" + path[len(process_root):]
+        path = normalize_fixture_parent(path, manifest, launch)
+        if path == "$FIXTURE_PARENT":
+            arm["fixtureParentNormalization"] = {"path": posixpath.dirname(manifest["rootPath"]),
+                                                 "baseArgument": manifest["launch"]["argv"][2], "token": path}
         root = manifest["rootPath"]
         if path == root or path.startswith(root + "/"):
             path = "$ROOT" + path[len(root):]
@@ -796,7 +930,7 @@ def inspect_arm(data, manifest, proof, arm, launch):
         name, args = call["syscall"], call["arguments"]
         if name == "write":
             path = lifetimes[call["fdRefs"][0]]["openedPath"]
-            if path == "anon_inode:[eventfd]":
+            if path == "anon_inode:[eventfd]" or eventfd_state(path) is not None:
                 require(len(args) == 3 and quoted(args[1]) == b"\x01\x00\x00\x00\x00\x00\x00\x00" and args[2] == "8" and call["result"]["value"] == 8, "unexpected runtime eventfd write")
                 excluded.append({"line": call["startLine"], "reason": "libuv eventfd wakeup; not a filesystem observation", "raw": call["raw"]})
                 call["excluded"] = True
@@ -954,7 +1088,7 @@ def main():
     report = {"schema": 1, "ok": False, "status": "fail", "errors": [], "arms": {"A": {}, "B": {}},
               "provenance": {}, "comparison": None,
               "claim": "One untimed public call per arm; structural kernel evidence only. No latency, scheduling, JavaScript-await, or process-settlement claim.",
-              "normalization": "Exact synthetic root prefix, exclusively-created UUID stage, descriptor lifetimes and TIDs. Metadata dev+ino equality classes are bijective within each arm; concrete identity/time outputs remain in evidence and are not claimed equal across fresh fixtures. Only fstatfs free counters f_bfree/f_bavail/f_ffree are additionally normalized; raw values stay in evidence. All other fields, masks, flags, syscall names and return values remain exact. Valid libuv eventfd wakeups are retained separately."}
+              "normalization": "Exact synthetic root prefix, exact invocation-bound fixture parent, exclusively-created UUID stage, descriptor lifetimes and TIDs. Metadata dev+ino equality classes are bijective within each arm; concrete identity/time outputs remain in evidence and are not claimed equal across fresh fixtures. Only fstatfs free counters f_bfree/f_bavail/f_ffree are additionally normalized; raw values stay in evidence. All other fields, masks, flags, syscall names and return values remain exact. Valid libuv eventfd wakeups are retained separately."}
     data, parsed, contract = {}, {}, {}
     for role, start in (("A", 0), ("B", 3)):
         for offset, name in enumerate(("trace", "manifest", "proof")):
