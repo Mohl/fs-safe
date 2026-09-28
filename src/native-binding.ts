@@ -135,6 +135,7 @@ export interface NativeBinding {
   rootRemovalStat?(parent: number, name: string): NativeRootRemovalEntry;
   rootRemovalUnlink?(parent: number, name: string, dev: bigint, ino: bigint, directory: boolean): void;
   openRootRemovalDirectory?(parent: number, name: string, dev: bigint, ino: bigint): NativeRootRemovalDirectory;
+  openCreateBeneath?(parentFd: number, basename: string, flags: number, mode: number): number;
   /** Windows-only, private handle custody; no borrowed/runtime descriptors. */
   retainWindowsFile?(directory: string, basename: string, parentDev: bigint, parentIno: bigint,
     dev: bigint, ino: bigint, size: bigint, mtimeNs: bigint, ctimeNs: bigint, sha256: string, maxBytes: number): NativeRetainedFile;
@@ -243,6 +244,7 @@ export interface NativeBinding {
   linkBeneath(...args: NativeTwoPathArgs): void;
   /** Direct-child mkdir; true is receipt provenance only, never cleanup ownership. */
   mkdirChildBeneath?(parentFd: number, basename: string, mode: number): boolean;
+  mkdirOpenChildBeneath?(parentFd: number, basename: string, mode: number, flags: number): { fd: number; created: boolean };
   mkdirBeneath(rootFd: number, relPath: string, mode: number): void;
   openBeneath(rootFd: number, relPath: string, flags: number): NativeOpenBeneathResult;
   readArchiveEntryNative(
