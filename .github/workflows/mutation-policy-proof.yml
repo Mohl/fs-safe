@@ -74,12 +74,16 @@ on:
         description: Run paired benchmarks (disable only when reusing identical runtime source)
         type: boolean
         default: true
+      focused_auto:
+        description: Run a warmed auto openWritable A/A/B control instead of campaigns
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: mutation-policy-proof-${{ github.event.pull_request.number || github.ref }}-${{ inputs.windows_only && 'windows' || inputs.linux && 'linux' || 'default' }}
+  group: mutation-policy-proof-${{ github.event.pull_request.number || github.ref }}-${{ inputs.focused_auto && 'auto-control' || inputs.windows_only && 'windows' || inputs.linux && 'linux' || 'default' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -221,10 +225,13 @@ jobs:
       - name: Full checks
         run: pnpm check
       - name: Interleaved method benchmarks with A/A control
-        if: runner.os == 'Linux' && inputs.benchmarks
+        if: runner.os == 'Linux' && inputs.benchmarks && !inputs.focused_auto
         run: node scripts/root-race/paired-methods.mjs
+      - name: Warmed auto openWritable A/A/B control
+        if: runner.os == 'Linux' && inputs.focused_auto
+        run: node scripts/root-race/auto-open-control.mjs
       - name: Adversarial campaign and exact-source receipt
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && !inputs.focused_auto }}
         env:
           ROOT_RACE_START_SEED: ${{ inputs.seed || 1 }}
           ROOT_RACE_SEEDS: ${{ inputs.seeds || 60 }}
