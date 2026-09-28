@@ -70,6 +70,10 @@ on:
         description: Attacker dwell multiplier (1 preserves the original timing)
         type: number
         default: 1
+      benchmarks:
+        description: Run paired benchmarks (disable only when reusing identical runtime source)
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -217,7 +221,7 @@ jobs:
       - name: Full checks
         run: pnpm check
       - name: Interleaved method benchmarks with A/A control
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && inputs.benchmarks
         run: node scripts/root-race/paired-methods.mjs
       - name: Adversarial campaign and exact-source receipt
         if: ${{ !cancelled() }}
