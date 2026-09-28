@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import type { BigIntStats, Stats } from "node:fs";
 import { registerRootHandleContext } from "./root-handle-context.js";
 import fsSync, { constants as fsConstants } from "node:fs";
@@ -21,6 +20,7 @@ import { runPinnedWriteHelper, runPinnedWriteWithRenamePolicy } from "./pinned-w
 import type { PinnedWriteInput } from "./pinned-write-types.js";
 import { preparePinnedWriteMutationAdmission, snapshotPinnedMutationPolicy } from "./pinned-mutation-admission.js";
 import { getNativeBinding } from "./native.js";
+import { getFsSafeNativeConfig } from "./native-config.js";
 import { validatePinnedRelativePath } from "./pinned-operation.js";
 import { PATH_ALIAS_POLICIES } from "./path-policy.js";
 import {
@@ -35,6 +35,7 @@ import { sameFileIdentity } from "./file-identity.js";
 import { removePathIfIdentityUnchanged } from "./replace-file-temp-owner.js";
 import { realpathSync } from "./realpath.js";
 import { mkdirPathFallback, prepareRootWriteTarget, tryMkdirAtExactParent } from "./root-directory-creation.js";
+import { buildAtomicWriteTempPath, rootWriteQueueKey, tryMkdirRootNative, tryOpenCreateRootNative, type MissingWritableFileInRoot, type OpenedWritableFileInRoot, type WritableFileInRootParams } from "./root-create-native.js";
 import { isNonRegularWriteOpenError, resolveNonblockingWriteFlag } from "./write-open-flags.js";
 import { resolveRootPath, resolveRootPathSync, resolveRootPathForRemoval } from "./root-path.js";
 import { RemovalPathReceipts } from "./root-remove-receipt.js";
@@ -93,7 +94,7 @@ import { finishRootFallbackWrite } from "./root-write-publication.js";
 import { withRootFallbackCompatibilityLock } from "./root-write-compatibility.js";
 import { assertRootFallbackWritePath } from "./root-write-lock-binding.js";
 import { inspectFileIdentity, inspectFileIdentitySync } from "./strict-file-identity.js";
-import { admitMoveSourceStat, movePathNoReplaceNative } from "./root-move-noreplace.js";
+import { admitMoveSourceStat, movePathNative } from "./root-move-noreplace.js";
 import { admitRootReadHandle, inspectOpenedPathIdentitySync } from "./root-read-admission.js";
 import { createCopyPublicationObserver, onCopyPublication, onCopySourceAdmission, type CopyPublicationOptions } from "./copy-publication.js";
 import { writeAllToFile } from "./write-file-handle.js";
@@ -680,31 +681,6 @@ function emitWriteBoundaryWarning(reason: string) {
   logWarn(`security: fs-safe write boundary warning (${reason})`);
 }
 
-function buildAtomicWriteTempPath(targetPath: string): string {
-  return path.join(path.dirname(targetPath), `.fs-safe-${randomUUID()}.tmp`);
-}
-
-function rootWriteQueueKey(root: RootContext, relativePath: string): string {
-  return `${root.rootReal}\0${relativePath}`;
-}
-
-type WritableFileInRootParams = Omit<RootOpenWritableOptions, "writeMode"> & {
-  relativePath: string;
-  truncateExisting?: boolean;
-  append?: boolean;
-  expectedWritePath?: string;
-};
-type OpenedWritableFileInRoot = {
-  opened: WritableOpenResult;
-  identity: BigIntStats;
-  writeSelection?: RetainedRootWriteSelection;
-};
-type MissingWritableFileInRoot = {
-  missing: true;
-  targetPath: string;
-  parentGuard: AnyAsyncDirectoryGuard;
-  writeSelection?: RootWritePathSelection;
-};
 
 function openWritableFileInRoot(root: RootContext, params: WritableFileInRootParams, options: { createIfMissing: false }): Promise<OpenedWritableFileInRoot | MissingWritableFileInRoot>;
 function openWritableFileInRoot(root: RootContext, params: WritableFileInRootParams): Promise<OpenedWritableFileInRoot>;
@@ -713,6 +689,8 @@ async function openWritableFileInRoot(
   params: WritableFileInRootParams,
   options?: { createIfMissing: false },
 ): Promise<OpenedWritableFileInRoot | MissingWritableFileInRoot> {
+  const policy = snapshotPinnedMutationPolicy(params.denyMutations, params.mutationSymlinks);
+  params = { ...params, ...policy };
   const guardedTarget = params.denyMutations === undefined && params.mutationSymlinks === undefined
     ? undefined
     : await resolveGuardedWriteTargetInRoot(root, {
@@ -723,12 +701,20 @@ async function openWritableFileInRoot(
   const { resolved } = guardedTarget?.resolvedPath ?? await resolveGuardedWritePathInRoot(root, {
     relativePath: params.relativePath,
   });
-  const prepared = guardedTarget ? await prepareSharedRootWriteTarget(root, {
+  const resolveCurrent = async () => (await resolveGuardedWritePathInRoot(root, {
+    relativePath: params.relativePath, ...policy,
+  })).resolved;
+  const nativeParent = params.mkdir !== false && await tryMkdirRootNative({
+    originalPath: params.relativePath,
+    root, directory: path.dirname(resolved), target: resolved, mkdir: true, policy,
+    resolveCurrent, assertBeforeMutation: params.assertBeforeMutation,
+  });
+  const prepared = !nativeParent && guardedTarget ? await prepareSharedRootWriteTarget(root, {
     relativePath: params.relativePath, guardedTarget, mkdir: params.mkdir,
     assertBeforeMutation: params.assertBeforeMutation,
   }) : undefined;
   const preparedParent = prepared?.preparedParent;
-  let ioPath = prepared?.targetPath ?? (params.mkdir === false ? resolved :
+  let ioPath = nativeParent ? resolved : prepared?.targetPath ?? (params.mkdir === false ? resolved :
     await prepareRootWriteTarget(root, resolved, params.assertBeforeMutation));
   const operationTargetPath = ioPath;
   try {
@@ -757,6 +743,8 @@ async function openWritableFileInRoot(
 
   let handle: FileHandle;
   let createdForWrite = false;
+  let cleanupCreated: (() => Promise<void>) | undefined;
+  let releaseCreationParent: (() => void) | undefined;
   let writePathSelection: Awaited<ReturnType<typeof prepareGuardedRootWritePathSelection>> = undefined;
   const existingFlags = params.append ? OPEN_APPEND_EXISTING_FLAGS : OPEN_WRITE_EXISTING_FLAGS;
   const createFlags = params.append ? OPEN_APPEND_CREATE_FLAGS : OPEN_WRITE_CREATE_FLAGS;
@@ -790,9 +778,23 @@ async function openWritableFileInRoot(
         return { missing: true, targetPath: ioPath, parentGuard, writeSelection: writePathSelection };
       }
       if (writePathSelection) await refreshRootWritePathSelection(writePathSelection);
-      params.assertBeforeMutation?.();
-      if (writePathSelection) assertRootWritePathSelectionSync(root, writePathSelection);
-      handle = await fs.open(ioPath, createFlags, mode);
+      const nativeCreated = await tryOpenCreateRootNative({
+        originalPath: params.relativePath,
+        root, directory: path.dirname(ioPath), target: ioPath, mkdir: false, policy,
+        resolveCurrent, assertBeforeMutation() {
+          params.assertBeforeMutation?.();
+          if (writePathSelection) assertRootWritePathSelectionSync(root, writePathSelection);
+        },
+        flags: createFlags, existingFlags, mode,
+      });
+      if (nativeCreated) handle = nativeCreated.handle;
+      else {
+        params.assertBeforeMutation?.();
+        if (writePathSelection) assertRootWritePathSelectionSync(root, writePathSelection);
+        handle = await fs.open(ioPath, createFlags, mode);
+      }
+      cleanupCreated = nativeCreated?.cleanupCreated;
+      releaseCreationParent = nativeCreated?.releaseCreationParent;
       createdForWrite = true;
     }
   } catch (err) {
@@ -900,12 +902,15 @@ async function openWritableFileInRoot(
       stat,
       [Symbol.asyncDispose]: () => handle.close().catch(() => undefined),
     };
-    return { opened: result, identity, writeSelection };
+    if (!params.keepCreationParent) releaseCreationParent?.();
+    return { opened: result, identity, writeSelection, cleanupCreated, releaseCreationParent };
   } catch (err) {
     const cleanupCreatedPath = createdForWrite && err instanceof FsSafeError;
     const cleanupPath = realPathForCleanup ?? ioPath;
+    if (cleanupCreatedPath && cleanupCreated) await cleanupCreated().catch(() => {});
+    try { releaseCreationParent?.(); } catch { /* Preserve the admission failure. */ }
     await handle.close().catch(() => {});
-    if (cleanupCreatedPath && createdIdentity) {
+    if (cleanupCreatedPath && createdIdentity && !cleanupCreated) {
       await removePathIfIdentityUnchanged(cleanupPath, createdIdentity).catch(() => {});
     }
     throw err;
@@ -916,7 +921,7 @@ async function appendFileInRoot(
   root: RootContext,
   params: RootAppendOptions & { relativePath: string; data: string | Buffer },
 ): Promise<void> {
-  const { opened: target, identity } = await openWritableFileInRoot(root, {
+  const { opened: target, identity, cleanupCreated, releaseCreationParent } = await openWritableFileInRoot(root, {
     relativePath: params.relativePath,
     mkdir: params.mkdir,
     mode: params.mode,
@@ -925,17 +930,22 @@ async function appendFileInRoot(
     mutationSymlinks: params.mutationSymlinks,
     truncateExisting: false,
     append: true,
+    keepCreationParent: true,
   });
+  using creationParent = { [Symbol.dispose]() { releaseCreationParent?.(); } };
   let dispatched = false;
   // Reverse disposal order closes the handle before path cleanup and retains both failures.
   await using cleanup = {
     async [Symbol.asyncDispose]() {
-      if (!dispatched && target.createdForWrite) {
+      if (!dispatched && target.createdForWrite && !cleanupCreated) {
         await removePathIfIdentityUnchanged(target.realPath, identity);
       }
     },
   };
   await using handle = target.handle;
+  await using nativeCleanup = { async [Symbol.asyncDispose]() {
+    if (!dispatched && target.createdForWrite) await cleanupCreated?.();
+  } };
   try {
     let prefix = "";
     if (
@@ -1017,6 +1027,12 @@ async function mkdirPathInRoot(
     ? async () => await resolvePinnedPathInRoot(root, resolution)
     : undefined;
   const resolved = await resolvePinnedPathInRoot(root, resolution);
+  if (await tryMkdirRootNative({
+    originalPath: params.relativePath,
+    root, directory: resolved.resolved, target: resolved.resolved, mkdir: true, private: privateMode,
+    policy, resolveCurrent: async () => (await resolvePinnedPathInRoot(root, resolution)).resolved,
+    assertBeforeMutation: params.assertBeforeMutation,
+  })) return;
   const prepared = policy && resolved.relativePosix !== ""
     ? await preparePinnedWriteMutationAdmission({
       rootReal: resolved.rootReal,
@@ -1403,13 +1419,22 @@ async function movePathFallback(
   if (!pinnedTarget) {
     throw new FsSafeError("path-mismatch", "destination admission was not completed");
   }
-  if (!params.overwrite) {
-    await movePathNoReplaceNative(root, params, {
+  const nativeReplace = params.overwrite ? getNativeBinding()?.renameReplaceWithIdentity : undefined;
+  if (params.overwrite && !nativeReplace && getFsSafeNativeConfig().mode === "require") {
+    throw new FsSafeError("helper-unavailable", "native overwrite move is unavailable");
+  }
+  if (!params.overwrite || nativeReplace) {
+    await movePathNative(root, params, {
       sourcePath: source.resolved,
       sourceParentPath: path.dirname(pinnedSource.canonicalPath),
       targetPath: target.resolved,
       targetParentPath: path.dirname(pinnedTarget.canonicalPath),
-    });
+      sourceOriginalPath: originalRoutes?.[0],
+      targetOriginalPath: originalRoutes?.[1],
+      sourceCanonicalPath: pinnedSource.canonicalPath,
+      targetCanonicalPath: pinnedTarget.canonicalPath,
+      expectedSourceIdentity: sourceIdentity,
+    }, params.overwrite);
     return;
   }
 

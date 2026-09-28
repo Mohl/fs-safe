@@ -27,8 +27,14 @@ mod copy_linux;
 #[cfg(unix)]
 mod file_copy;
 mod owned_tree;
+#[cfg(all(test, unix))]
+mod root_creation_tests;
+#[cfg(windows)]
+mod root_create_windows;
 #[cfg(unix)]
 mod root_remove;
+#[cfg(windows)]
+mod root_remove_windows;
 #[cfg(unix)]
 mod realpath;
 #[cfg(target_os = "macos")]
@@ -343,6 +349,19 @@ pub fn rename_no_replace_with_identity(
 }
 
 native_path_pair_operation!(rename_replace, "renameReplace");
+
+#[napi(js_name = "renameReplaceWithIdentity")]
+pub fn rename_replace_with_identity(
+    env: Env, source_root_fd: i32, source_rel_path: String,
+    target_root_fd: i32, target_rel_path: String, dev: BigInt, ino: BigInt,
+) -> Result<()> {
+    into_napi(env, (|| {
+        validate_child_basename(&source_rel_path)?;
+        validate_child_basename(&target_rel_path)?;
+        platform::rename_replace_with_identity(source_root_fd, &source_rel_path,
+            target_root_fd, &target_rel_path, exact_file_identity(&dev, &ino)?)
+    })())
+}
 
 #[napi(js_name = "fstatIdentity")]
 pub fn fstat_identity(env: Env, fd: i32) -> Result<FileIdentity> {

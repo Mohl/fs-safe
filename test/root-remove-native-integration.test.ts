@@ -23,7 +23,31 @@ describe.runIf(native?.rootRemovalStat)("native Root removal", () => {
     configureFsSafeNative({ mode: "require" });
   }
 
-  it.each([false, true])("keeps outside data after a parent swap (recursive=%s)", async recursive => {
+  it.skipIf(process.platform !== "win32")("fails closed for unsupported Windows recursive directories", async () => {
+    requireNative();
+    const directory = await tempRoot("fs-safe-native-remove-windows-tree-");
+    await fs.mkdir(path.join(directory, "tree"));
+    await fs.writeFile(path.join(directory, "tree/value"), "preserve");
+    const scoped = await root(directory);
+    await expect(scoped.remove("tree", { recursive: true })).rejects.toMatchObject({ code: "helper-unavailable" });
+    expect(await fs.readFile(path.join(directory, "tree/value"), "utf8")).toBe("preserve");
+  });
+
+  it.skipIf(process.platform === "win32" || process.getuid?.() === 0)("does not require directory read permission to unlink a direct child", async () => {
+    requireNative();
+    const directory = await tempRoot("fs-safe-native-remove-search-");
+    const parent = path.join(directory, "parent");
+    await fs.mkdir(parent);
+    await fs.writeFile(path.join(parent, "value"), "inside");
+    const scoped = await root(directory);
+    await fs.chmod(parent, 0o300);
+    await fs.chmod(directory, 0o300);
+    try { await scoped.remove("parent/value"); }
+    finally { await fs.chmod(directory, 0o700); await fs.chmod(parent, 0o700); }
+    expect(await fs.readdir(parent)).toEqual([]);
+  });
+
+  it.each(native?.openRootRemovalDirectory ? [false, true] : [false])("keeps outside data after a parent swap (recursive=%s)", async recursive => {
     requireNative();
     const directory = await tempRoot("fs-safe-native-remove-");
     const outside = await tempRoot("fs-safe-native-remove-outside-");
@@ -35,9 +59,9 @@ describe.runIf(native?.rootRemovalStat)("native Root removal", () => {
     let swapped = false;
     __setFsSafeTestHooksForTest({ beforeRootFallbackMutation: async operation => {
       if (operation !== "remove" || swapped) return;
-      swapped = true;
       await fs.rename(path.join(directory, "parent"), path.join(directory, "held"));
-      await fs.symlink(outside, path.join(directory, "parent"), "dir");
+      await fs.symlink(outside, path.join(directory, "parent"), process.platform === "win32" ? "junction" : "dir");
+      swapped = true;
     } });
     await expect(scoped.remove(recursive ? "parent/tree" : "parent/tree/value", { recursive }))
       .rejects.toMatchObject({ code: "path-mismatch" });
@@ -45,7 +69,7 @@ describe.runIf(native?.rootRemovalStat)("native Root removal", () => {
     expect(await fs.readFile(path.join(outside, "tree/value"), "utf8")).toBe("outside");
   });
 
-  it.each(["filesystem", "sorted"] as const)("preserves recursive policies and budgets (%s)", async order => {
+  it.skipIf(!native?.openRootRemovalDirectory).each(["filesystem", "sorted"] as const)("preserves recursive policies and budgets (%s)", async order => {
     requireNative();
     const directory = await tempRoot("fs-safe-native-remove-policy-");
     await fs.mkdir(path.join(directory, "tree/nested"), { recursive: true });
@@ -61,13 +85,28 @@ describe.runIf(native?.rootRemovalStat)("native Root removal", () => {
   });
 
   it("fails closed before mutation when mount-bounded descent is unavailable", async () => {
-    __setNativeLoaderForTest(() => ({ ...native!, ownedTreeRemovalAvailable: () => false }));
+    __setNativeLoaderForTest(() => ({ ...native!, openRootRemovalDirectory() {
+      throw Object.assign(new Error("unavailable"), { code: "ENOTSUP" });
+    } }));
     configureFsSafeNative({ mode: "require" });
     const directory = await tempRoot("fs-safe-native-remove-unavailable-");
     await fs.mkdir(path.join(directory, "tree"));
     const scoped = await root(directory);
     await expect(scoped.remove("tree", { recursive: true })).rejects.toMatchObject({ code: "helper-unavailable" });
     expect(await fs.readdir(directory)).toEqual(["tree"]);
+  });
+
+  it.skipIf(process.platform === "win32" || process.getuid?.() === 0)("does not confuse an unreadable parent with an unavailable recursive primitive", async () => {
+    requireNative();
+    const directory = await tempRoot("fs-safe-native-remove-recursive-search-");
+    const parent = path.join(directory, "parent");
+    await fs.mkdir(path.join(parent, "tree"), { recursive: true });
+    await fs.writeFile(path.join(parent, "tree/value"), "inside");
+    const scoped = await root(directory);
+    await fs.chmod(parent, 0o300);
+    try { await scoped.remove("parent/tree", { recursive: true }); }
+    finally { await fs.chmod(parent, 0o700); }
+    expect(await fs.readdir(parent)).toEqual([]);
   });
 
   it("checks the retained ancestor identities after native unlink dispatch", async () => {
@@ -84,6 +123,40 @@ describe.runIf(native?.rootRemovalStat)("native Root removal", () => {
     } }));
     configureFsSafeNative({ mode: "require" });
     await expect(scoped.remove("ancestor/parent/value", { force: true })).rejects.toMatchObject({ code: "path-mismatch" });
+  });
+
+  it.skipIf(!native?.openRootRemovalDirectory).each([false, true])("preserves force semantics when a directory disappears before native open (force=%s)", async force => {
+    const directory = await tempRoot("fs-safe-native-remove-force-");
+    await fs.mkdir(path.join(directory, "tree"));
+    const scoped = await root(directory);
+    __setNativeLoaderForTest(() => ({ ...native!, openRootRemovalDirectory() {
+      fsSync.rmdirSync(path.join(directory, "tree"));
+      throw Object.assign(new Error("disappeared"), { code: "ENOENT" });
+    } }));
+    configureFsSafeNative({ mode: "require" });
+    const pending = scoped.remove("tree", { recursive: true, force });
+    if (force) await expect(pending).resolves.toBeUndefined();
+    else await expect(pending).rejects.toMatchObject({ code: "not-found", details: {
+      operation: "remove", phase: "enumerate", relativePath: "",
+    } });
+  });
+
+  it.skipIf(!native?.openRootRemovalDirectory)("preserves native enumeration and close failures with their operation context", async () => {
+    const directory = await tempRoot("fs-safe-native-remove-close-");
+    await fs.mkdir(path.join(directory, "tree"));
+    const readError = Object.assign(new Error("read denied"), { code: "EACCES" });
+    const closeError = Object.assign(new Error("close failed"), { code: "EIO" });
+    __setNativeLoaderForTest(() => ({ ...native!, openRootRemovalDirectory(...args) {
+      const opened = native!.openRootRemovalDirectory!(...args);
+      return { get fd() { return opened.fd; }, read() { throw readError; }, close() { opened.close(); throw closeError; } };
+    } }));
+    configureFsSafeNative({ mode: "require" });
+    const scoped = await root(directory);
+    await expect(scoped.remove("tree", { recursive: true })).rejects.toMatchObject({
+      name: "SuppressedError",
+      error: { code: "not-removable", cause: closeError },
+      suppressed: { code: "not-removable", cause: readError, details: { operation: "remove", phase: "enumerate", relativePath: "" } },
+    });
   });
 });
 
