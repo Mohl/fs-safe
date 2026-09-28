@@ -1,10 +1,12 @@
 CAPTURED POSIX PARENT IDENTITY — PARENT EXECUTION COPY
 
-A = 6c3e8130124b26156626efb06119beea9b61c624
-B = 858a7d2c2ecee07fbca697fcf6a11e8beb278112
+A = 4332074713961c7b06998bc0c594f9fab38f0bb2
+B = 704f586045a97144ebd05add4e2afce9697e126c
 Both package versions: 0.21.1. Linux only; unchanged Windows route remains a CI
 responsibility. Parent owns integration, review, dispatch and disposition.
 No old study data, held result, or partial comparison is an execution input.
+This pair includes current require-mode confinement changes. Earlier successful
+and failed studies remain separate; all workload counts and gates stay fixed.
 
 Reuse and ownership
 

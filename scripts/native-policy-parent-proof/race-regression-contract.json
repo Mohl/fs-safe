@@ -4,12 +4,12 @@
   "execution": "Parent-integrated remote source-race qualification. The parent workflow owns process bounds, runtime invocation, cleanup and all acceptance gates.",
   "sourcePins": {
     "A": {
-      "commit": "6c3e8130124b26156626efb06119beea9b61c624",
-      "tree": "4394796902af0fe9d2f4f0407f5144b08380427c"
+      "commit": "4332074713961c7b06998bc0c594f9fab38f0bb2",
+      "tree": "11be4c5923dd0d0bda596d97063b140911ef77bd"
     },
     "B": {
-      "commit": "858a7d2c2ecee07fbca697fcf6a11e8beb278112",
-      "tree": "c137c4b7e80879df9162137d192aaedc5b40be8d"
+      "commit": "704f586045a97144ebd05add4e2afce9697e126c",
+      "tree": "bbedd6b56413a01ec12404201ddba5b99885cd39"
     }
   },
   "test": {
