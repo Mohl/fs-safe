@@ -197,7 +197,7 @@ export async function tryOpenCreateRootNative(params: Creation & {
   mode: number;
 }): Promise<{ handle: FileHandle; cleanupCreated(): Promise<void>; releaseCreationParent(): void } | undefined> {
   const binding = getNativeBinding();
-  if (!binding?.removeStagedFile) return unavailable();
+  if (!binding?.removeStagedFile || !binding.openCreateBeneath) return unavailable();
   const access = (params.existingFlags & fs.constants.O_RDWR) ? 0o600 : 0o200;
   if (typeof params.mode !== "number") throw Object.assign(new TypeError("mode must be a number"), { code: "ERR_INVALID_ARG_TYPE" });
   if (!Number.isInteger(params.mode) || params.mode < 0 || params.mode > 0xffffffff) {
@@ -206,11 +206,9 @@ export async function tryOpenCreateRootNative(params: Creation & {
   const creationMode = () => {
     const mask = process.umask();
     const desired = params.mode & 0o7777 & ~mask;
-    const initial = 0o600 & ~mask;
-    return (initial & ~desired) === 0 && (desired & access) === access ? desired : undefined;
+    return (desired & access) === access ? desired : undefined;
   };
-  // The native helper creates 0600 before final mode application. Neither that
-  // initial mode nor FileHandle reopening may widen the requested permissions.
+  // A public FileHandle reopen must not require widening creation permissions.
   if (creationMode() === undefined) return unavailable();
   const opened = await withNativeDirectory(params, async (binding, parent, assertCurrent) => {
     params.assertBeforeMutation?.();
@@ -220,14 +218,18 @@ export async function tryOpenCreateRootNative(params: Creation & {
     // Native creation owns the only O_CREAT dispatch. The subsequent Node open
     // carries neither O_CREAT nor O_TRUNC and must match this retained inode.
     const close = captureNativeFdClose(binding);
-    const fd = binding.openBeneath(parent, path.basename(params.target), params.flags | (fs.constants.O_NOFOLLOW ?? 0)).fd;
+    const fd = binding.openCreateBeneath!(parent, path.basename(params.target), params.flags, params.mode & 0o7777);
     let rawOpen = true;
     const closeRaw = () => { if (rawOpen) { rawOpen = false; close(fd); } };
     using owner = { [Symbol.dispose]: closeRaw };
     try {
       const identity = inspectFileIdentitySync(() => fs.fstatSync(fd, { bigint: true }));
       if (!identity.isFile() || identity.nlink !== 1n) throw new FsSafeError("path-mismatch", "created file changed");
-      if (Number(identity.mode & 0o7777n) !== mode) fs.fchmodSync(fd, mode);
+      // Keep the kernel's creation-time ACL and umask decisions. chmod here
+      // could widen inherited ACL restrictions, even for ordinary mode bits.
+      if (process.platform !== "win32" && (Number(identity.mode) & access) !== access) {
+        throw new FsSafeError("helper-unavailable", "created permissions do not permit a FileHandle handoff");
+      }
       assertCurrent();
       const handle = await fsAsync.open(params.target, params.existingFlags);
       let validatedHandle = false;

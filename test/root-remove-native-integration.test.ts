@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { configureFsSafeNative } from "../src/native-config.js";
 import { __loadBundledNativeForTest, __resetNativeLoaderForTest, __setNativeLoaderForTest, type NativeBinding } from "../src/native.js";
 import { root } from "../src/root.js";
@@ -12,6 +12,7 @@ let native: NativeBinding | undefined;
 try { native = __loadBundledNativeForTest(); } catch { /* Dedicated native lanes build the addon. */ }
 const { tempRoot } = useRealTempDirs();
 afterEach(() => {
+  vi.restoreAllMocks();
   configureFsSafeNative({ mode: "auto" });
   __resetNativeLoaderForTest();
   __setFsSafeTestHooksForTest();
@@ -22,6 +23,16 @@ describe.runIf(native?.rootRemovalStat)("native Root removal", () => {
     __setNativeLoaderForTest(() => native!);
     configureFsSafeNative({ mode: "require" });
   }
+
+  it("normalizes a root-descriptor admission failure before recursive removal", async () => {
+    requireNative();
+    const directory = await tempRoot("fs-safe-native-remove-root-error-");
+    await fs.mkdir(path.join(directory, "tree"));
+    const scoped = await root(directory);
+    vi.spyOn(fs, "open").mockRejectedValueOnce(Object.assign(new Error("denied"), { code: "EACCES" }));
+    await expect(scoped.remove("tree", { recursive: true })).rejects.toMatchObject({ code: "path-alias" });
+    expect(await fs.readdir(directory)).toEqual(["tree"]);
+  });
 
   it.skipIf(process.platform !== "win32")("fails closed for unsupported Windows recursive directories", async () => {
     requireNative();
@@ -157,6 +168,32 @@ describe.runIf(native?.rootRemovalStat)("native Root removal", () => {
       error: { code: "not-removable", cause: closeError },
       suppressed: { code: "not-removable", cause: readError, details: { operation: "remove", phase: "enumerate", relativePath: "" } },
     });
+  });
+
+  it.skipIf(!native?.openRootRemovalDirectory).each([false, true])("preserves a custom abort reason during native traversal (close failure=%s)", async closeFailure => {
+    const directory = await tempRoot("fs-safe-native-remove-abort-");
+    await fs.mkdir(path.join(directory, "tree"));
+    await fs.writeFile(path.join(directory, "tree/value"), "preserve");
+    const controller = new AbortController();
+    const reason = Object.freeze({ revoked: true });
+    const closeError = new Error("parent close failed");
+    let injected = false;
+    __setNativeLoaderForTest(() => ({ ...native!,
+      openRootRemovalDirectory(...args) {
+        const opened = native!.openRootRemovalDirectory!(...args);
+        return { get fd() { return opened.fd; }, read() { const name = opened.read(); controller.abort(reason); return name; }, close() { opened.close(); } };
+      },
+      closeOwnedFd(fd) {
+        native!.closeOwnedFd(fd);
+        if (closeFailure && controller.signal.aborted && !injected) { injected = true; throw closeError; }
+      },
+    }));
+    configureFsSafeNative({ mode: "require" });
+    const scoped = await root(directory);
+    const pending = scoped.remove("tree", { recursive: true, signal: controller.signal });
+    if (closeFailure) await expect(pending).rejects.toMatchObject({ name: "SuppressedError", error: closeError, suppressed: reason });
+    else await expect(pending).rejects.toBe(reason);
+    expect(await fs.readFile(path.join(directory, "tree/value"), "utf8")).toBe("preserve");
   });
 });
 

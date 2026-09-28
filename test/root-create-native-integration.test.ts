@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { configureFsSafeNative } from "../src/native-config.js";
@@ -12,7 +13,23 @@ try { native = __loadBundledNativeForTest(); } catch { /* Native lanes build the
 const { tempRoot } = useRealTempDirs();
 afterEach(() => { vi.restoreAllMocks(); configureFsSafeNative({ mode: "auto" }); __resetNativeLoaderForTest(); });
 
-describe.runIf(native?.removeStagedFile)("native Root creation", () => {
+describe.runIf(native?.removeStagedFile && native?.openCreateBeneath)("native Root creation", () => {
+  it.skipIf(process.platform !== "linux").each([7, 4])("preserves kernel default-ACL creation restrictions (owner=%s)", async owner => {
+    __setNativeLoaderForTest(() => native!);
+    configureFsSafeNative({ mode: "require" });
+    const directory = await tempRoot("fs-safe-native-create-acl-");
+    execFileSync("python3", ["-c", "import os,struct,sys; acl=struct.pack('<I',2)+b''.join(struct.pack('<HHI',tag,perm,0xffffffff) for tag,perm in [(1,int(sys.argv[2])),(4,0),(32,0)]); os.setxattr(sys.argv[1],b'system.posix_acl_default',acl)", directory, String(owner)]);
+    const scoped = await root(directory);
+    const pending = scoped.append("value", "private", { mode: 0o666, durable: false });
+    if (owner === 7) {
+      await pending;
+      expect((await fs.stat(path.join(directory, "value"))).mode & 0o777).toBe(0o600);
+      expect(await fs.readFile(path.join(directory, "value"), "utf8")).toBe("private");
+    } else {
+      await expect(pending).rejects.toMatchObject({ code: "helper-unavailable" });
+      expect(await fs.readdir(directory)).toEqual([]);
+    }
+  });
   it("preserves a replacement opened during a rejected FileHandle handoff", async () => {
     __setNativeLoaderForTest(() => native!);
     configureFsSafeNative({ mode: "require" });
@@ -99,8 +116,11 @@ describe.runIf(native?.removeStagedFile)("native Root creation", () => {
         return native!.mkdirChildBeneath!(parent, name, mode);
       },
       openBeneath(parent, name, flags) {
-        if (operation === "append" && (flags & fsSync.constants.O_CREAT)) swap();
         return native!.openBeneath(parent, name, flags);
+      },
+      openCreateBeneath(parent, name, flags, mode) {
+        if (operation === "append") swap();
+        return native!.openCreateBeneath!(parent, name, flags, mode);
       },
     }));
     configureFsSafeNative({ mode });
@@ -170,7 +190,7 @@ describe.runIf(native?.removeStagedFile)("native Root creation", () => {
     expect((await fs.stat(path.join(directory, "compatible"))).mode & 0o777).toBe(0o400 & ~process.umask());
   });
 
-  it("cleans its own empty file after the creation parent is renamed before append dispatch", async () => {
+  it.skipIf(process.platform === "win32")("cleans its own empty file after the creation parent is renamed before append dispatch", async () => {
     __setNativeLoaderForTest(() => native!);
     configureFsSafeNative({ mode: "require" });
     const directory = await tempRoot("fs-safe-native-create-retained-");

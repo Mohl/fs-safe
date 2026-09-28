@@ -268,6 +268,12 @@ pub fn open_beneath(
     into_napi(env, result)
 }
 
+#[napi(js_name = "openCreateBeneath")]
+pub fn open_create_beneath(env: Env, parent_fd: i32, basename: String, flags: i32, mode: u32) -> Result<i32> {
+    into_napi(env, validate_child_basename(&basename)
+        .and_then(|()| platform::open_create_beneath(parent_fd, &basename, flags, mode & 0o7777)))
+}
+
 #[napi(js_name = "mkdirBeneath")]
 pub fn mkdir_beneath(env: Env, root_fd: i32, rel_path: String, mode: u32) -> Result<()> {
     into_napi(

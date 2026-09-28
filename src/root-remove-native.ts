@@ -49,7 +49,7 @@ export async function tryRemovePathInRootNative(
   if (!boundary) return true;
   const rootAdmission = await openNativeRootAdmission(binding, {
     rootPath: root.rootReal, rootIdentity: root.rootIdentity, operation: "remove", reportCloseErrors: true, searchOnly: true,
-  });
+  }).catch(error => { throw normalizeRemoveGuardError(error); });
   let parent: NativeParentAdmission | undefined;
   let initialEntry: NativeRootRemovalEntry | undefined;
   let initialDirectory: NativeRootRemovalDirectory | undefined;
@@ -108,14 +108,18 @@ export async function tryRemovePathInRootNative(
   try { await rootAdmission.root.close(); } catch (error) { closeErrors.push(error); }
   if (closeErrors.length) {
     const error = closeErrors.length === 1 ? closeErrors[0] : new AggregateError(closeErrors, "removal descriptors could not close");
-    if (failed) throw createSuppressedError(error, operationError, "removal and descriptor close failed");
+    if (failed) throw createSuppressedError(error,
+      operationError instanceof MutationAuthorityError ? operationError.rejection : operationError,
+      "removal and descriptor close failed");
     throw error;
   }
   if (failed) throw operationError;
   return handled;
 
   async function removeEntries(admitted: NativeParentAdmission): Promise<void> {
-    const guards: AnyAsyncDirectoryGuard[] = [admitted.guard];
+    // The admission already checks Root through the retained parent. This list
+    // adds only traversal descendants, avoiding duplicate ancestry fences.
+    const guards: AnyAsyncDirectoryGuard[] = [];
     const maxEntries = options.maxEntries ?? 100_000;
     const maxDepth = options.maxDepth ?? 64;
     let examined = 0;
@@ -126,15 +130,20 @@ export async function tryRemovePathInRootNative(
       try { await getFsSafeTestHooks()?.beforeRootFallbackMutation?.("remove", entryPath); }
       catch (error) { throw normalizeRemoveGuardError(error); }
     }
-    function assertCurrent(): void {
+    function assertNotAborted(): void {
       try { options.signal?.throwIfAborted(); } catch (error) { throw new MutationAuthorityError(error); }
-      assertRootIdentityCurrentSync(root);
-      boundary!.assertCurrent();
+    }
+    function assertTraversalCurrent(): void {
       for (const guard of guards) {
         try { assertSyncDirectoryGuard(guard); } catch (cause) {
           throw new FsSafeError("path-mismatch", "removal ancestor changed", { cause });
         }
       }
+    }
+    function assertCurrent(): void {
+      assertNotAborted();
+      boundary!.assertCurrent();
+      assertTraversalCurrent();
     }
     function observe(fd: number, name: string, entryPath: string, expected?: NativeRootRemovalEntry): NativeRootRemovalEntry | undefined {
       assertCurrent();
@@ -153,7 +162,7 @@ export async function tryRemovePathInRootNative(
       }
     }
     async function visit(fd: number, name: string, entryPath: string, depth: number, counted = false): Promise<void> {
-      assertCurrent();
+      assertNotAborted();
       if (options.recursive && ((!counted && examined >= maxEntries) || depth > maxDepth)) {
         throw new FsSafeError("too-large", "recursive removal budget exceeded", { details: details(entryPath, "inspect") });
       }
@@ -218,17 +227,23 @@ export async function tryRemovePathInRootNative(
           }
         }
       }
-      if (options.recursive) await beforeMutation(entryPath);
-      await assertMutationNotDenied(entryPath, options.denyMutations, { protectAncestors: true });
-      if (!observe(fd, name, entryPath, initial)) return;
-      options.assertBeforeMutation?.();
-      assertCurrent();
-      if (!observe(fd, name, entryPath, initial)) return;
+      if (options.recursive) {
+        await beforeMutation(entryPath);
+        await assertMutationNotDenied(entryPath, options.denyMutations, { protectAncestors: true });
+        if (!observe(fd, name, entryPath, initial)) return;
+      }
+      if (options.assertBeforeMutation) {
+        options.assertBeforeMutation();
+        if (!observe(fd, name, entryPath, initial)) return;
+      }
+      // No await separates the final admission from native identity-checked unlink.
       try { unlink(fd, name, initial.dev, initial.ino, initial.directory); } catch (error) {
         if (!(options.force && isNotFoundPathError(error))) throw normalize(error, details(entryPath, "remove"));
       }
-      boundary!.assertAfterMutation();
-      assertCurrent();
+      if (options.recursive) boundary!.assertCurrent();
+      else boundary!.assertAfterMutation();
+      assertTraversalCurrent();
+      assertNotAborted();
     }
     await visit(admitted.fd, path.basename(target), target, 0);
   }

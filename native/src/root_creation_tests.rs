@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf, time::{SystemTime, UNIX_EPOCH}};
-use std::os::fd::AsRawFd;
-use std::os::unix::fs::symlink;
-use crate::unix::{mkdir_child_beneath, open_owned_beneath};
+use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::os::unix::fs::{symlink, MetadataExt, OpenOptionsExt};
+use crate::unix::{mkdir_child_beneath, open_create_beneath};
 
 struct Fixture(PathBuf);
 impl Fixture {
@@ -36,14 +36,18 @@ fn append_creation_pins_parent_and_does_not_follow_a_final_symlink() {
     let parent = fs::File::open(fixture.0.join("parent")).unwrap();
     fixture.before_final();
     let flags = libc::O_RDWR | libc::O_APPEND | libc::O_CREAT | libc::O_EXCL | libc::O_NOFOLLOW;
-    let fd = open_owned_beneath(parent.as_raw_fd(), "created", flags).unwrap();
+    // SAFETY: the creation helper transfers a fresh owned descriptor.
+    let fd = unsafe { OwnedFd::from_raw_fd(open_create_beneath(parent.as_raw_fd(), "created", flags, 0o640).unwrap()) };
     use std::io::Write;
     let mut file = fs::File::from(fd);
     file.write_all(b"inside").unwrap();
+    let control = fs::OpenOptions::new().write(true).create_new(true).mode(0o640)
+        .open(fixture.0.join("held/control")).unwrap();
+    assert_eq!(file.metadata().unwrap().mode() & 0o7777, control.metadata().unwrap().mode() & 0o7777);
     assert_eq!(fs::read(fixture.0.join("held/created")).unwrap(), b"inside");
     assert!(!fixture.0.join("outside/created").exists());
     fs::write(fixture.0.join("outside/value"), b"preserve").unwrap();
     symlink("../outside/value", fixture.0.join("held/link")).unwrap();
-    assert!(open_owned_beneath(parent.as_raw_fd(), "link", flags).is_err());
+    assert!(open_create_beneath(parent.as_raw_fd(), "link", flags, 0o640).is_err());
     assert_eq!(fs::read(fixture.0.join("outside/value")).unwrap(), b"preserve");
 }

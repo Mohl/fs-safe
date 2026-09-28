@@ -2,7 +2,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use windows_sys::Wdk::Storage::FileSystem::FILE_OPEN;
 use windows_sys::Win32::Foundation::HANDLE;
-use windows_sys::Win32::Storage::FileSystem::{DELETE, FILE_READ_ATTRIBUTES, FILE_WRITE_ATTRIBUTES};
+use windows_sys::Win32::Storage::FileSystem::{DELETE, FILE_READ_ATTRIBUTES};
 use crate::{ExactFileIdentity, NativeResult, into_napi, native_error, validate_child_basename};
 use crate::windows::{OwnedHandle, ReparsePolicy, handle_identity, handle_is_reparse,
     mark_handle_for_deletion, nt_open_relative_with_policy, root_handle};
@@ -39,7 +39,7 @@ pub fn root_removal_stat(env: Env, parent: i32, name: String) -> Result<WindowsR
 fn unlink_with_hook(parent: HANDLE, name: &str, expected: ExactFileIdentity, directory: bool, before_final: impl FnOnce()) -> NativeResult<()> {
     validate_child_basename(name)?;
     before_final();
-    let child = open(parent, name, DELETE | FILE_WRITE_ATTRIBUTES)?;
+    let child = open(parent, name, DELETE)?;
     let (identity, is_directory, _) = inspect(child.0)?;
     if identity != expected || is_directory != directory {
         return Err(native_error("path-mismatch", "removal entry changed"));
