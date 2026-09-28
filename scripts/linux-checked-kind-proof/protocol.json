@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "ready": false,
+  "ready": true,
   "name": "linux-checked-component-kind",
   "sourcePins": {
     "A": {
@@ -8,8 +8,8 @@
       "tree": "6b88512435a97d23ffa3bf77598171975a2b1f7d"
     },
     "B": {
-      "commit": "ee82836b6aaa32d8dc94678b0a2a6dfcd2889d03",
-      "tree": "27719996238c8729fa4ad364249cefdfd2843d7f"
+      "commit": "e00c407db4e602ace9f6b6040d10a72fa057a300",
+      "tree": "d3b25f511344e621df4746de894e257ab7e3d793"
     }
   },
   "platform": "linux",
@@ -25,7 +25,8 @@
   "sourceChangedFiles": [
     "CHANGELOG.md",
     "docs/security-model.md",
-    "native/src/linux_open.rs"
+    "native/src/linux_open.rs",
+    "test/api-coverage.test.ts"
   ],
   "rows": [
     {

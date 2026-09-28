@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "readiness": "pending-parent-independent-review",
+  "readiness": "parent-authorized-after-full-managed-P2-review; final-small-delta-review-before-dispatch",
   "files": {
-    "README.md": "a006bfa8e524b0a5935b3b5177eee6daf9273520e9ffc108ffbed45d37e04ce3",
+    "README.md": "61f3e5fbf657c78c4af69f5f5bfe93a2a281d054d9bd3778cef7c1eea1662e0d",
     "bootstrap-toolchains.py": "7f2b3bff4a361d187cdafa7d29a20caa5296dd5da9aa964ad160ab027eb30151",
     "check-source-tests.py": "b7198d27cee9a7418a021ea585d20949aa82e7a5abfee4b4863670d007f8c793",
     "collect.py": "8b911a879798257ceb41b463e95f35aa114dd10ea1a868dc9a4e5c678a31c473",
@@ -27,9 +27,9 @@
     "offline-tests/test-conditional-native.py": "eb6051c675ea74c517402e8b13a1ce1c50fc7312675c969635ca84e9933af9f0",
     "offline-tests/test_compare_syscalls.py": "33450c9d758a9e4a749d321071435eefa5ecf5263eb29df320a086465111e88a",
     "owner-provenance.json": "61b6db76d3309ed5e95683a211bcbf994ebda806e2852245042389f4399b7fef",
-    "pins.json": "26c710df5c208f3ba7d6b85af07a6c4e940b52eac8fcd74ba3839843dca621b7",
+    "pins.json": "a45b095cc3ef8a0a4bf3b966c3750c54a027715c40062fb7222823ce8ea4acc4",
     "prepare-consumers.mjs": "82f90abf57988562e7a463bc66f72068f89e9fc9a343f3ff990c9333a42795fc",
-    "protocol.json": "1bd19e56cdac39283ea5065ea14b523c08c865e871e6ccaae3b7ec437784198a",
+    "protocol.json": "b5b19ddca8128386620910e6919c7af8658143396ae092e28f226db1e344e4c4",
     "qualification.json": "4ff80a53db3d0eccce38afb5482301df3795e13981a04dfa4cb965bd76753d83",
     "run-conditional-native.py": "a4b30eb610acdabc9f9b6ee666dd8bedd3538eeff79dcbd3d98434be2c139402",
     "run-prepare.py": "051d9c39d40c803a930274fb9d6157308647b6f2cb78ed2df2994340181fb536",

@@ -1,6 +1,6 @@
 # Linux checked component type — external proof packet
 
-This packet qualifies only the three-line Rust optimization pinned in `pins.json`. Both `pins.ready` and `protocol.ready` are **false** until the parent independently reviews and freezes the complete packet. Source preparation, remote package execution, timing and kernel-resource operations have not run during packet construction.
+This packet qualifies the three-line Rust optimization pinned in `pins.json`. Both `pins.ready` and `protocol.ready` are **true** for final candidate `e00c407db4e602ace9f6b6040d10a72fa057a300`, following the passed full managed P2 packet review and parent authorization. Its additional `test/api-coverage.test.ts` delta isolates a Windows-only semantic test using the existing device-flush helper and scoped restoration; production behavior, assertions, options and timeouts are unchanged. The parent retains the final small-delta review, transport and dispatch. No product tests or timings have run at this configuration update.
 
 The packet is transport-neutral trusted Linux code. The parent's configured Crabbox provider remains authoritative (currently AWS); no workflow or provider change is required. Do not modify or merge the prior #735 carrier. Do not copy one native binary into both arms.
 
@@ -10,13 +10,13 @@ Provide clean, task-owned `WORKSPACE/A` and `WORKSPACE/B` at the exact committed
 
 The host must supply pnpm, an existing Rust 1.98.1 toolchain, Python 3, a C compiler, strace, Git, tar, sudo and unshare. `bootstrap-toolchains.py --prepare-only` first installs exact official checksum-verified Node archives and privately copies the existing Rust toolchain, preserving compiler bytes while adding its verified wasm32 std component. It invokes the pinned first-party archive LLVM installer with its own RUNNER_TEMP/GITHUB_ENV. Rustup is not required. The AWS hydration workflow alone does not prepare these tools. No credentials belong in this packet or its proof environment.
 
-Toolchain preparation can run independently while readiness is false, using the explicit prepare-only switch and a clean exact A or B checkout:
+Toolchain preparation uses the explicit prepare-only switch and a clean exact A or B checkout; it does not require measurement readiness:
 
 ```sh
 python3 packet/bootstrap-toolchains.py --prepare-only SOURCE UNUSED_BOOTSTRAP_DIR
 ```
 
-This runs first-party tool installation/version probes only; no product build or tests. Preparation receipts and environment are required by the source/package runner. After independent review, the parent enables both readiness fields and regenerates `packet-manifest.json` from all packet files (excluding the manifest itself and any caches). Any subsequent file change invalidates the frozen packet. The parent runs these entrypoints in order, using an unused work directory:
+This runs first-party tool installation/version probes only; no product build or tests. The completed `bootstrap1` remains reusable because its recorded source is unchanged baseline A, its environment hash matches, and its children settled. Its historical prior-B pin records tool-preparation context, not a candidate build. Preparation receipts and environment remain required by the source/package runner. Both readiness fields are now enabled and `packet-manifest.json` has been regenerated. Any subsequent file change invalidates the frozen packet. The parent runs these entrypoints in order, using an unused work directory:
 
 ```sh
 python3 packet/run-prepare.py WORKSPACE WORK BOOTSTRAP_DIR
@@ -43,6 +43,6 @@ Trace output is privately owned and bounded to 32 MiB. The trace launcher holds 
 
 ## Construction checks and remaining gaps
 
-Only parse-only checks and synthetic offline harness tests are allowed before the parent starts remote qualification. These are not product tests. Offline scripts under `offline-tests/` must use synthetic data or fake public APIs only. The current packet deliberately refuses execution while readiness is false.
+Construction checks and synthetic offline harness tests are not product tests. Offline scripts under `offline-tests/` must use synthetic data or fake public APIs only. Readiness is enabled only for the exact current source pair and unchanged workload protocol; it does not claim completed product qualification.
 
 Unresolved until remote proof: actual source/package build success, emitted syscall spellings/order on the target libc/kernel, real native loader/ABI behavior, exact expected metadata deltas, kernel mount/credential prerequisites, runtime resource settlement, and all latency gates. A parser refusal is inconclusive evidence, not a product regression; preserve its raw trace and investigate without retuning latency gates or selectively rerunning cells. Never pool old #735 samples.
