@@ -10,9 +10,11 @@ const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).tr
 const startSeed = Number(process.env.ROOT_RACE_START_SEED ?? 1);
 const seedCount = Number(process.env.ROOT_RACE_SEEDS ?? 60);
 const secondsPerSeed = Number(process.env.ROOT_RACE_SECONDS ?? 20);
+const dwellScale = Number(process.env.ROOT_RACE_DWELL_SCALE ?? 1);
 assert(Number.isSafeInteger(startSeed) && startSeed >= 1);
 assert(Number.isSafeInteger(seedCount) && seedCount >= 1);
 assert(Number.isSafeInteger(secondsPerSeed) && secondsPerSeed >= 20);
+assert(Number.isFinite(dwellScale) && dwellScale > 0 && dwellScale <= 100);
 const lanes = process.platform === 'linux' ? ['openat2', 'fallback'] : [process.platform];
 const summary = [];
 const failClosed = process.argv.includes('--fail-closed');
@@ -44,7 +46,7 @@ if (failClosed) {
     const log = fs.createWriteStream(path.join(output, `${lane}.log`), { flags: 'wx' });
     const child = spawn(process.execPath, ['scripts/root-race/run.mjs', '--mode=require',
       `--ops=${operations.join(',')}`, `--seed=${startSeed}`, `--seeds=${seedCount}`,
-      `--seconds=${secondsPerSeed}`, `--output=${file}`], { env });
+      `--seconds=${secondsPerSeed}`, `--dwell-scale=${dwellScale}`, `--output=${file}`], { env });
     child.stdout.on('data', data => { process.stdout.write(data); log.write(data); });
     child.stderr.on('data', data => { process.stderr.write(data); log.write(data); });
     const result = await new Promise((resolve, reject) => {
@@ -67,7 +69,7 @@ if (failClosed) {
     const successes = Object.fromEntries(operations.map(operation => [operation,
       seeds.reduce((sum, row) => sum + row.metrics[operation].success, 0)]));
     summary.push({ head, lane, platform: process.platform, startSeed, seeds: seedCount,
-      secondsPerSeed, seconds: seedCount * secondsPerSeed, operations,
+      secondsPerSeed, dwellScale, seconds: seedCount * secondsPerSeed, operations,
       calls: seeds.reduce((sum, row) => sum + row.operations, 0), successes,
       outsideEffects: 0, deniedEffects: 0, recursive: recursive ? 'exercised' : 'asserted-fail-closed' });
     fs.writeFileSync(path.join(output, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');

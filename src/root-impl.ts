@@ -20,7 +20,7 @@ import { runPinnedWriteHelper, runPinnedWriteWithRenamePolicy } from "./pinned-w
 import type { PinnedWriteInput } from "./pinned-write-types.js";
 import { preparePinnedWriteMutationAdmission, snapshotPinnedMutationPolicy } from "./pinned-mutation-admission.js";
 import { getNativeBinding } from "./native.js";
-import { getFsSafeNativeConfig } from "./native-config.js";
+import { isFsSafeNativeRequired } from "./native-config.js";
 import { validatePinnedRelativePath } from "./pinned-operation.js";
 import { PATH_ALIAS_POLICIES } from "./path-policy.js";
 import {
@@ -548,7 +548,7 @@ export class RootHandle implements Root {
       mutationOptions.denyMutations, mutationOptions.mutationSymlinks,
     ) ?? {};
     const overwrite = options.overwrite ?? false;
-    const requireNative = getFsSafeNativeConfig().mode === "require";
+    const requireNative = isFsSafeNativeRequired();
     await assertMoveMutationAllowed(this.context, {
       fromRelative,
       toRelative,
@@ -684,7 +684,7 @@ function openWritableFileInRoot(root: RootContext, params: WritableFileInRootPar
 function openWritableFileInRoot(root: RootContext, params: WritableFileInRootParams): Promise<OpenedWritableFileInRoot>;
 async function openWritableFileInRoot(root: RootContext, params: WritableFileInRootParams,
   options?: { createIfMissing: false }): Promise<OpenedWritableFileInRoot | MissingWritableFileInRoot> {
-  const requireNative = getFsSafeNativeConfig().mode === "require";
+  const requireNative = isFsSafeNativeRequired();
   const policy = requireNative ? snapshotPinnedMutationPolicy(params.denyMutations, params.mutationSymlinks) : undefined;
   if (policy) params = { ...params, ...policy };
   const guardedTarget = params.denyMutations === undefined && params.mutationSymlinks === undefined
@@ -988,7 +988,7 @@ async function removePathInRoot(
   params: RootRemoveOptions & { relativePath: string },
 ): Promise<void> {
   validatePinnedRelativePath(params.relativePath);
-  const requireNative = getFsSafeNativeConfig().mode === "require";
+  const requireNative = isFsSafeNativeRequired();
   if (requireNative) params = { ...params, ...snapshotPinnedMutationPolicy(params.denyMutations, params.mutationSymlinks) };
   const removalReceipts = params.recursive ? undefined : new RemovalPathReceipts();
   const resolved = await resolvePinnedPathInRoot(root, {
@@ -1014,7 +1014,7 @@ async function mkdirPathInRoot(
     allowRoot?: boolean;
   },
 ): Promise<void> {
-  const requireNative = getFsSafeNativeConfig().mode === "require";
+  const requireNative = isFsSafeNativeRequired();
   const privateMode = resolveCreationPermissions(params, true).private;
   validatePinnedRelativePath(params.relativePath);
   const policy = params.denyMutations === undefined && params.mutationSymlinks === undefined

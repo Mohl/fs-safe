@@ -66,12 +66,16 @@ on:
         description: Seconds per seed (at least 20)
         type: number
         default: 20
+      dwell_scale:
+        description: Attacker dwell multiplier (1 preserves the original timing)
+        type: number
+        default: 1
 
 permissions:
   contents: read
 
 concurrency:
-  group: mutation-policy-proof-${{ github.event.pull_request.number || github.ref }}-${{ inputs.windows_only && 'windows' || 'default' }}
+  group: mutation-policy-proof-${{ github.event.pull_request.number || github.ref }}-${{ inputs.windows_only && 'windows' || inputs.linux && 'linux' || 'default' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -221,6 +225,7 @@ jobs:
           ROOT_RACE_START_SEED: ${{ inputs.seed || 1 }}
           ROOT_RACE_SEEDS: ${{ inputs.seeds || 60 }}
           ROOT_RACE_SECONDS: ${{ inputs.seconds || 20 }}
+          ROOT_RACE_DWELL_SCALE: ${{ inputs.dwell_scale || 1 }}
         run: |
           mkdir -p .artifacts
           git rev-parse HEAD > .artifacts/source.txt
