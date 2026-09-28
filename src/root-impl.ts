@@ -94,7 +94,7 @@ import { finishRootFallbackWrite } from "./root-write-publication.js";
 import { withRootFallbackCompatibilityLock } from "./root-write-compatibility.js";
 import { assertRootFallbackWritePath } from "./root-write-lock-binding.js";
 import { inspectFileIdentity, inspectFileIdentitySync } from "./strict-file-identity.js";
-import { admitMoveSourceStat, movePathNoReplaceNative } from "./root-move-noreplace.js";
+import { admitMoveSourceStat, movePathNative } from "./root-move-noreplace.js";
 import { admitRootReadHandle, inspectOpenedPathIdentitySync } from "./root-read-admission.js";
 import { createCopyPublicationObserver, onCopyPublication, onCopySourceAdmission, type CopyPublicationOptions } from "./copy-publication.js";
 import { writeAllToFile } from "./write-file-handle.js";
@@ -548,12 +548,14 @@ export class RootHandle implements Root {
       mutationOptions.denyMutations, mutationOptions.mutationSymlinks,
     ) ?? {};
     const overwrite = options.overwrite ?? false;
+    const requireNative = isFsSafeNativeRequired();
     await assertMoveMutationAllowed(this.context, {
       fromRelative,
       toRelative,
       denyMutations,
     });
     await movePathFallback(this.context, {
+      requireNative,
       fromRelative,
       denyMutations,
       assertBeforeMutation,
@@ -1361,6 +1363,7 @@ async function movePathFallback(
   root: RootContext,
   params: RootMoveOptions & Parameters<typeof assertMoveMutationAllowed>[1] & {
     overwrite: boolean;
+    requireNative: boolean;
   },
 ): Promise<void> {
   const originalRoutes = params.overwrite && params.assertBeforeMutation
@@ -1415,13 +1418,23 @@ async function movePathFallback(
   if (!pinnedTarget) {
     throw new FsSafeError("path-mismatch", "destination admission was not completed");
   }
-  if (!params.overwrite) {
-    await movePathNoReplaceNative(root, params, {
+  const nativeReplace = params.overwrite && params.requireNative
+    ? getNativeBinding()?.renameReplaceWithIdentity : undefined;
+  if (params.overwrite && !nativeReplace && params.requireNative) {
+    throw new FsSafeError("helper-unavailable", "native overwrite move is unavailable");
+  }
+  if (!params.overwrite || nativeReplace) {
+    await movePathNative(root, params, {
       sourcePath: source.resolved,
       sourceParentPath: path.dirname(pinnedSource.canonicalPath),
       targetPath: target.resolved,
       targetParentPath: path.dirname(pinnedTarget.canonicalPath),
-    });
+      sourceOriginalPath: originalRoutes?.[0],
+      targetOriginalPath: originalRoutes?.[1],
+      sourceCanonicalPath: pinnedSource.canonicalPath,
+      targetCanonicalPath: pinnedTarget.canonicalPath,
+      expectedSourceIdentity: sourceIdentity,
+    }, params.overwrite);
     return;
   }
 
