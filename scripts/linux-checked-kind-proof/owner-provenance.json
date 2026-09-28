@@ -1,0 +1,8 @@
+{
+  "sourceStudy": "fs-safe PR #735",
+  "unchangedFiles": {
+    "harness/bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
+    "harness/settlement_control.py": "63338a93219e17187fe1db7dc1b5b2d4c0bdc88ad46c7328f58a89c428504ba6",
+    "harness/step-owner.py": "233098357c31a2402a20207082077d6bdeda7be19f84cfdf5fe472bb9587707a"
+  }
+}

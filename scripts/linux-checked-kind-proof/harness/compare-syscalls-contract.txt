@@ -1,0 +1,153 @@
+Checked-component FileType reuse: selected-call comparator, schema 1
+
+Command (unchanged):
+  python3 compare-syscalls.py TRACE_A MANIFEST_A PROOF_A TRACE_B MANIFEST_B PROOF_B OUTPUT
+
+One invocation compares one row and one exact Node version. The frozen matrix
+has eight rows on Node v22.23.2/v24.21.0, 16 paired comparisons and 32 selected
+public calls. It loads pins.json and protocol.json beside this harness at run
+time, hashes both, and refuses either ready=false. No compiled source pins or
+cross-arm shared-native-binary assumption remains. OUTPUT must be new.
+
+The declared rows and candidate-minus-baseline component metadata deltas are:
+  enosys-depth1  ENOSYS  one directory             -1
+  enosys-depth8  ENOSYS  eight directories          -8
+  enosys-alias   ENOSYS  alias -> actual            -2
+  enosys-root    ENOSYS  empty parent/descriptor dup 0
+  eperm-depth1   EPERM   one directory             -1
+  eperm-depth8   EPERM   eight directories          -8
+  eperm-alias    EPERM   alias -> actual            -2
+  kernel-depth8 openat2 eight directories           0
+
+Capture includes the full process, not only marker spans:
+  strace -f -ttt -yy -v -e abbrev=execve,execveat -s1024 \
+    -e trace=%file,fstat,fstatfs,prctl,seccomp,close,write,fchmod,fsync,fdatasync,dup,dup2,dup3,fcntl
+
+The existing bounded process owner stays unchanged. The launcher requires ready
+pins and protocol plus FS_SAFE_TEST_NO_OPENAT2=0. It reserves an exclusive
+O_NOFOLLOW 0600 trace descriptor in a task-owned real directory without
+non-owner write access. A single supervised strace child writes through
+/proc/<launcher-pid>/fd/<held-fd>; no descriptor is inherited by the product,
+no new process group/session/timeout owner is introduced. The launcher joins
+strace and checks held-fd/path identity before and after capture. The existing
+outer bounded owner retains cancellation/group-settlement responsibility.
+This adds one launcher process only to untimed tracing. Its hard 32 MiB
+RLIMIT_FSIZE bounds trace output; no timing occurs under strace. Exec environment vectors must be
+abbreviated (pointer plus count), while stat and filesystem-stat structures
+must be complete. The comparator requires every traced TID's successful exit;
+external bounded-owner settlement receipts remain a separate required gate.
+
+Each trace also has a strict adjacent <trace filename>.launch.json receipt,
+written before execution, which the comparator opens and hashes. This records
+the exact command, resolved runtime path/hash, hook=0, row/Node/mechanism,
+source-pin/protocol hashes and (for denied rows) the exact retained compiler
+build receipt text/snapshot/hash. The launcher hashes the wrapper binary,
+compiler and source before launching; the source hash must match the frozen
+packet's deny-openat2.c. The build command is exactly compiler, source, -o,
+binary and belongs to compile-deny-wrapper. Traced wrapper and Node exec argv
+must exactly equal that launcher command. The manifest records Node's own
+process.execPath/argv; consumer expectedPath must match the command's consumer,
+proof/manifest basenames must match replay inputs, and observed .node opens
+must identify the manifest's loaded binary inside that consumer. Both arms
+must share the exact runtime digest and wrapper build receipt. No intervening
+successful exec is allowed between Node's bound invocation and BEGIN.
+
+Each manifest's source is its own pinned commit/tree and dirty=false. Its
+nativeSha256 is bound to the same role's archived exact consumer expected.json
+bytes at <manifest filename>.expected.json. expectedReceipt contains only the
+strict sidecar basename and SHA256; the comparator opens and hashes that file,
+requires matching role/source/native digest, and records root/native package
+and dist/declaration receipts. Separate A/B native hashes must differ. Source
+build provenance, package integrity, installed loading and before/after
+rechecks remain the independent prepared-consumer and study gates; this
+comparator does not infer provenance merely from distinct binary hashes.
+
+The selected public call is safe.write(relative, payload, {mkdir:false,
+ durable:false,mode:384}), default policy, with all parents and an existing
+leaf prepared before BEGIN. Payload is the reused 128-byte arithmetic fixture
+((index*17+3)%251). A sibling outside directory retains the exact sentinel
+'outside sentinel retained\n'; root/prime-sentinel performs untimed native
+warmup. Root/parent/target layout, alias spelling, options, Node patch, source,
+expected receipt and native hash are repeated in the successful proof. The
+outcome is exact bytes, 0600 mode, one link, outside sentinel bytes, final parent
+and root names, public relative path and alias target where applicable. Proof
+must report ok=true, cleanup=true, phase=complete after fixture/descriptor
+settlement and installed-artifact rechecks. One successful fd2 write of
+FS_SAFE_KIND_BEGIN|END <row> plus newline brackets the only selected call.
+
+Actual mechanism selection is attested before BEGIN. The first and unique
+harmless openat2(AT_FDCWD,".") capability probe must carry O_PATH,
+O_DIRECTORY,O_CLOEXEC and RESOLVE_BENEATH|RESOLVE_NO_MAGICLINKS. For denied rows,
+its errno must be the declared ENOSYS/EPERM, following a successful
+PR_SET_NO_NEW_PRIVS and four-instruction SECCOMP_MODE_FILTER installed by the
+wrapper before it execs Node in the same process. No later openat2 is allowed
+on the cached fallback route. The normal control must show a genuinely
+successful probe, no filter installation, and a successful selected beneath
+parent openat2. The hook label alone never proves mechanism selection.
+
+Every unfinished/resumed call is reconstructed by TID. Opens, duplication,
+publication and close define descriptor lifetimes; matching integer fd values
+alone never establish ownership. Successful exec retires known O_CLOEXEC or
+FD_CLOEXEC owners, including successful F_SETFD changes, before fd reuse.
+Unknown calls, ambiguous overlapping retained
+filesystem calls, close/reuse overlap, marker-crossing calls, incomplete or
+detached traces, incomplete object outputs and untracked descriptors fail.
+Only successful 8-byte value-one eventfd wakeups may be excluded from the
+filesystem sequence; each remains in evidence. All compared filesystem
+lifetimes must begin and close inside the selected marker span. The exclusive
+UUID stage must use the admitted parent, and publication must use the same
+capability or its traced dup family. Stage and admitted parent close after
+publication and before END.
+
+Deletion attribution is structural, never just aggregate counting. Each
+expected component has exactly one identified O_PATH|O_NOFOLLOW|O_CLOEXEC
+probe lifetime at the expected path. Its immediately following successful
+named nofollow observation and first descriptor metadata sample must agree
+on dev/ino and object type/mode. Baseline must then contain a second immediately
+adjacent, identical descriptor sample of that same owner. Candidate must omit
+that second sample. No later walk/expected/opened-descriptor sample is eligible
+for deletion. Every component must retain subsequent fresh pathname and
+owned-descriptor checks and close before staging. Descriptor fstat and
+newfstatat/statx with empty name plus AT_EMPTY_PATH are recognized as the same
+kind of observation; raw syscall spelling/masks stay preserved in sequence.
+
+Alias rows additionally require repeated successful fstatfs link admission,
+immediate fresh parent descriptor mode checks, initial descriptor readlinkat
+and retained named link-target rereads with the exact 'actual' spelling.
+Filesystem type, flags, fsid and every output field remain compared. Only the
+volatile free counters f_bfree/f_bavail/f_ffree receive explicit tokens; their
+concrete values remain in raw and parsed evidence. This predefined exception
+prevents evidence-output disk consumption from masquerading as a semantic
+change; it does not remove filesystem or security observations.
+
+After removing only the uniquely attributed initial duplicate samples from A,
+its complete normalized sequence must equal B. Both controls require complete
+sequence equality. Fresh nofollow names, every other descriptor observation,
+link rereads, mount/mode admission, staging/write/chmod/publication and all
+closes therefore remain. Unexpected/missing events fail without count-based
+forgiveness, retries, sample selection, threshold changes or relabeled rows.
+
+Normalization is confined to exact synthetic root, one exclusive UUID stage,
+fd lifetimes/process identities and bijective dev+ino object tokens. Concrete
+identity/time outputs remain recorded; fresh fixtures' dev/ino/timestamps are
+not claimed equal across arms. Stable stat fields/type/mode/link counts,
+field sets, masks/flags, raw readlink byte counts, return values and errnos
+remain exact. Pair roots must have equal byte lengths. Failed stat/readlink
+output pointers may become 'unwritten', retaining their raw addresses and
+all inputs. Unknown pointer positions fail.
+
+Passing proves only the declared untimed syscall removal and preservation
+contract for these installed public calls. It does not prove latency, general
+speedup, every API, JavaScript await scheduling, runtime provenance by hash
+alone, or physical process/lease release. Performance and live safety gates
+must pass separately before landing.
+
+Conservative rejection boundary: any syscall spanning a selected marker,
+including a libuv eventfd wakeup, makes evidence ambiguous and fails the
+comparison. This is a proof-attribution failure, not a claim of a product bug;
+no automatic retry or relaxed filter is authorized by the comparator.
+
+Offline preparation checks live in offline-tests/test_compare_syscalls.py.
+They use synthetic traces/receipts only and never execute fs-safe, an addon,
+strace, a denial binary, a build or a benchmark. Their passing result checks
+parser/comparator behavior; it is not installed-product qualification.

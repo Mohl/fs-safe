@@ -1,0 +1,409 @@
+{
+  "schema": 1,
+  "ready": false,
+  "name": "linux-checked-component-kind",
+  "sourcePins": {
+    "A": {
+      "commit": "efa5f0f5694f69cca7c14c120adf2b9917e4a528",
+      "tree": "6b88512435a97d23ffa3bf77598171975a2b1f7d"
+    },
+    "B": {
+      "commit": "ee82836b6aaa32d8dc94678b0a2a6dfcd2889d03",
+      "tree": "27719996238c8729fa4ad364249cefdfd2843d7f"
+    }
+  },
+  "platform": "linux",
+  "arch": "x64",
+  "libc": "glibc",
+  "packageVersion": "0.21.2",
+  "packageManager": "pnpm@12.4.2",
+  "nativePackage": "@openclaw/fs-safe-linux-x64-gnu",
+  "nodeVersions": {
+    "22": "v22.23.2",
+    "24": "v24.21.0"
+  },
+  "sourceChangedFiles": [
+    "CHANGELOG.md",
+    "docs/security-model.md",
+    "native/src/linux_open.rs"
+  ],
+  "rows": [
+    {
+      "id": "enosys-depth1",
+      "mechanism": "ENOSYS",
+      "depth": 1,
+      "alias": false,
+      "expectedComponentFstatDelta": -1
+    },
+    {
+      "id": "enosys-depth8",
+      "mechanism": "ENOSYS",
+      "depth": 8,
+      "alias": false,
+      "expectedComponentFstatDelta": -8
+    },
+    {
+      "id": "enosys-alias",
+      "mechanism": "ENOSYS",
+      "depth": 1,
+      "alias": true,
+      "expectedComponentFstatDelta": -2
+    },
+    {
+      "id": "enosys-root",
+      "mechanism": "ENOSYS",
+      "depth": 0,
+      "alias": false,
+      "expectedComponentFstatDelta": 0
+    },
+    {
+      "id": "eperm-depth1",
+      "mechanism": "EPERM",
+      "depth": 1,
+      "alias": false,
+      "expectedComponentFstatDelta": -1
+    },
+    {
+      "id": "eperm-depth8",
+      "mechanism": "EPERM",
+      "depth": 8,
+      "alias": false,
+      "expectedComponentFstatDelta": -8
+    },
+    {
+      "id": "eperm-alias",
+      "mechanism": "EPERM",
+      "depth": 1,
+      "alias": true,
+      "expectedComponentFstatDelta": -2
+    },
+    {
+      "id": "kernel-depth8",
+      "mechanism": "openat2",
+      "depth": 8,
+      "alias": false,
+      "expectedComponentFstatDelta": 0
+    }
+  ],
+  "syscalls": {
+    "nodeMajors": [
+      22,
+      24
+    ],
+    "rows": [
+      "enosys-depth1",
+      "enosys-depth8",
+      "enosys-alias",
+      "enosys-root",
+      "eperm-depth1",
+      "eperm-depth8",
+      "eperm-alias",
+      "kernel-depth8"
+    ],
+    "calls": 32
+  },
+  "qualification": {
+    "mechanisms": [
+      "openat2",
+      "ENOSYS",
+      "EPERM"
+    ],
+    "nodeMajors": [
+      22,
+      24
+    ],
+    "rowIds": [
+      "nested-write-read",
+      "relative-alias-write",
+      "root-write-read",
+      "dot-parent-write",
+      "missing-parent-create",
+      "missing-parent-mkdir-false",
+      "alias-mutation-reject",
+      "alias-canonical-deny",
+      "create-collision",
+      "move-success",
+      "move-collision",
+      "escaping-parent-reject",
+      "traversal-reject",
+      "hardlink-read-reject",
+      "bounded-cleanup",
+      "no-orphan-settlement"
+    ],
+    "processes": 12
+  },
+  "timing": {
+    "cohorts": [
+      {
+        "id": "fallback",
+        "mechanism": "ENOSYS",
+        "rows": [
+          "enosys-depth1",
+          "enosys-depth8",
+          "enosys-alias",
+          "enosys-root"
+        ]
+      },
+      {
+        "id": "kernel",
+        "mechanism": "openat2",
+        "rows": [
+          "kernel-depth8"
+        ]
+      }
+    ],
+    "schedule": [
+      {
+        "block": 1,
+        "position": 1,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 1,
+        "position": 2,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 1,
+        "position": 3,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 1,
+        "position": 4,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 2,
+        "position": 1,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 2,
+        "position": 2,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 2,
+        "position": 3,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 2,
+        "position": 4,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 3,
+        "position": 1,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 3,
+        "position": 2,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 3,
+        "position": 3,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 3,
+        "position": 4,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 4,
+        "position": 1,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 4,
+        "position": 2,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 4,
+        "position": 3,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 4,
+        "position": 4,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 5,
+        "position": 1,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 5,
+        "position": 2,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 5,
+        "position": 3,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 5,
+        "position": 4,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 6,
+        "position": 1,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 6,
+        "position": 2,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 6,
+        "position": 3,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 6,
+        "position": 4,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 7,
+        "position": 1,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 7,
+        "position": 2,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 7,
+        "position": 3,
+        "role": "B",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 7,
+        "position": 4,
+        "role": "A",
+        "order": "ABBA",
+        "rowOrder": "forward"
+      },
+      {
+        "block": 8,
+        "position": 1,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 8,
+        "position": 2,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 8,
+        "position": 3,
+        "role": "A",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      },
+      {
+        "block": 8,
+        "position": 4,
+        "role": "B",
+        "order": "BAAB",
+        "rowOrder": "reverse"
+      }
+    ],
+    "samples": 5,
+    "callsPerSample": 10,
+    "warmups": 5,
+    "checkedUntimed": 1,
+    "threshold": 1.05,
+    "nodeMajor": 24,
+    "legProcesses": 64,
+    "measuredCalls": 8000,
+    "warmupAndCheckedCalls": 960,
+    "statisticalMethod": "Unchanged eight-quartet paired geometric/order ratios and upper95 deterministic bootstrap from #735; every cell <=1.05. No prior evidence pooled."
+  },
+  "bounds": {
+    "bootstrapSeconds": 1200,
+    "installSeconds": 1200,
+    "buildSeconds": 1800,
+    "nativeTestsSeconds": 1200,
+    "sourceTestsSeconds": 900,
+    "fullCheckSeconds": 2400,
+    "packageSeconds": 900,
+    "qualificationSeconds": 180,
+    "traceSeconds": 120,
+    "traceComparisonSeconds": 60,
+    "legSeconds": 600,
+    "assessmentSeconds": 120,
+    "conditionalSeconds": 120
+  },
+  "provenance": "Each clean pinned arm builds its own Rust addon and root distribution with same recorded toolchain. Dist outputs must match; native bytes must differ and remain separately bound to source, tarball integrity and installed loader. No copied/shared addon. Hook is 0 for real seccomp/kernel proof. Kernel probe error is retained outside selected-call/timing markers. Fresh process for each mechanism. All started bounded children and owned mounts must settle before collection.",
+  "limitations": "Timing qualifies steady-state Linux x64 glibc Node24 only; Node22 has correctness and syscall proof. ENOSYS and EPERM actual selection are both proved; EPERM steady-state timing is not duplicated. Root public containment labels do not prove mechanism."
+}

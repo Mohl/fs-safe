@@ -1,0 +1,17 @@
+{
+  "syntheticOnly": true,
+  "productExecuted": false,
+  "nativeExecuted": false,
+  "straceExecuted": false,
+  "testsRun": 16,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "ok": true,
+  "files": {
+    "harness/compare-syscalls.py": "68cfb4e4193eece05703e8c6174f93ce4a509796a0d33c257d5bf70ab6193a1f",
+    "harness/compare-syscalls-contract.txt": "dc7cc74b4f25980a850b1627837f64b4b3ed90942fe39d71521db297f3778e56",
+    "harness/trace-launch.py": "97fbf6d457efe2b1504851d638a5c2ca9d7e577934de8521b09b36911c177074",
+    "offline-tests/test_compare_syscalls.py": "33450c9d758a9e4a749d321071435eefa5ecf5263eb29df320a086465111e88a"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "ready": false,
+  "A": {
+    "commit": "efa5f0f5694f69cca7c14c120adf2b9917e4a528",
+    "tree": "6b88512435a97d23ffa3bf77598171975a2b1f7d"
+  },
+  "B": {
+    "commit": "ee82836b6aaa32d8dc94678b0a2a6dfcd2889d03",
+    "tree": "27719996238c8729fa4ad364249cefdfd2843d7f"
+  },
+  "branch": "codex/linux-checked-component-kind",
+  "executionOwner": "Parent enables only after independent packet review and trusted Linux preflight."
+}

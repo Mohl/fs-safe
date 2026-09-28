@@ -1,0 +1,24 @@
+SYNTHETIC OFFLINE COMPARATOR CHECKS ONLY
+No product, native binary, strace, build, benchmark, network, lease, or Git write executed.
+
+test_alias_safety_admission_and_target_reread_required (<run_path>.SyntheticComparatorTests.test_alias_safety_admission_and_target_reread_required) ... ok
+test_all_rows_both_versions (<run_path>.SyntheticComparatorTests.test_all_rows_both_versions) ... ok
+test_cli_sidecars_and_replay (<run_path>.SyntheticComparatorTests.test_cli_sidecars_and_replay) ... ok
+test_descriptor_stat_spellings (<run_path>.SyntheticComparatorTests.test_descriptor_stat_spellings) ... ok
+test_exact_launch_bindings (<run_path>.SyntheticComparatorTests.test_exact_launch_bindings) ... ok
+test_exec_retires_only_cloexec_owner (<run_path>.SyntheticComparatorTests.test_exec_retires_only_cloexec_owner) ... ok
+test_extra_event_cannot_be_hidden_by_expected_count (<run_path>.SyntheticComparatorTests.test_extra_event_cannot_be_hidden_by_expected_count) ... ok
+test_initial_duplicate_must_be_exact_and_owned (<run_path>.SyntheticComparatorTests.test_initial_duplicate_must_be_exact_and_owned) ... ok
+test_launcher_refuses_unready_packet_before_spawn (<run_path>.SyntheticComparatorTests.test_launcher_refuses_unready_packet_before_spawn) ... ok
+test_missing_owner_close_rejected (<run_path>.SyntheticComparatorTests.test_missing_owner_close_rejected) ... ok
+test_not_ready_is_rejected (<run_path>.SyntheticComparatorTests.test_not_ready_is_rejected) ... ok
+test_receipt_and_outcome_bindings (<run_path>.SyntheticComparatorTests.test_receipt_and_outcome_bindings) ... ok
+test_removed_named_fence_rejected (<run_path>.SyntheticComparatorTests.test_removed_named_fence_rejected) ... ok
+test_traced_invocation_and_native_path_must_match (<run_path>.SyntheticComparatorTests.test_traced_invocation_and_native_path_must_match) ... ok
+test_volatile_fstatfs_counts_only_are_normalized (<run_path>.SyntheticComparatorTests.test_volatile_fstatfs_counts_only_are_normalized) ... ok
+test_wrong_mechanism_or_filter_is_rejected (<run_path>.SyntheticComparatorTests.test_wrong_mechanism_or_filter_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.928s
+
+OK

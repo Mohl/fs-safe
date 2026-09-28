@@ -1,0 +1,25 @@
+{
+  "sourceTests": [
+    "test/linux-openat2-parity.test.ts",
+    "test/linux-openat2-fallback.test.ts",
+    "test/native-unix-descriptor-admission.test.ts",
+    "test/native-write-containment.test.ts",
+    "test/root-move-noreplace.test.ts",
+    "test/root-move-native-integration.test.ts",
+    "test/root-write-existing-alias.test.ts",
+    "test/root-create-native-integration.test.ts",
+    "test/root-move-replace-native-integration.test.ts",
+    "test/root-native-mode-routing.test.ts"
+  ],
+  "sourceMechanisms": [
+    "normal",
+    "hook"
+  ],
+  "allSourceRowsMustExecute": true,
+  "rustConditionalTests": {
+    "nonroot": "linux_open::tests::preserves_search_permissions_and_directory_suffixes",
+    "root": "linux_open::tests::refuses_foreign_owned_links_in_sticky_shared_directories",
+    "nosymfollow": "linux_open::tests::respects_nosymfollow_mount"
+  },
+  "conditionalPolicy": "Exact binary+test+credential+mount receipt needed to claim body executed; missing privilege/mount capability is explicit incomplete qualification, not a pass. No forced/lazy unmount."
+}
