@@ -46,6 +46,11 @@ code and `policy` category for compatibility, along with the original `cause`;
 they do not expose native message text or paths. Already-classified `FsSafeError`
 instances and missing-path errors keep their existing classification.
 
+Buffered Root writes apply the same destination admission in native and
+fallback modes, including on Windows: replacement rejects a final symlink
+with `path-alias`, and create-only writes to a directory report `not-file`.
+Both preserve the rejected destination and any symlink target.
+
 `details` is an operation-specific receipt, not an alternate error code. For
 example, `publishFileExclusive()` uses it to report the failing phase, created
 target identity, cleanup decision, and failed directory-sync outcome. Narrow

@@ -88,6 +88,7 @@ import {
   type PinnedWriteTarget,
 } from "./root-write-admission.js";
 import { prepareSharedRootWriteTarget } from "./root-write-complete-parent.js";
+import { inspectExistingRootWriteTarget } from "./root-write-mode.js";
 import { finishRootFallbackWrite } from "./root-write-publication.js";
 import { withRootFallbackCompatibilityLock } from "./root-write-compatibility.js";
 import { assertRootFallbackWritePath } from "./root-write-lock-binding.js";
@@ -1060,6 +1061,12 @@ async function writeFileInRoot(
       !params.private && input.kind === "buffer" && !input.stageBeforePublish && process.platform === "win32" &&
       (params.renameIdentity === "verify-content-with-lock" || !getNativeBinding())
     ) {
+      const { resolved } = await resolveGuardedWritePathInRoot(root, {
+        relativePath: params.relativePath,
+        denyMutations: params.denyMutations,
+        mutationSymlinks: params.mutationSymlinks,
+      });
+      await inspectExistingRootWriteTarget(resolved, params.overwrite !== false);
       await writeFileFallback(root, { ...params, data: input.data });
       return;
     }

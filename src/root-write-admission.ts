@@ -9,7 +9,6 @@ import {
   type AnyAsyncDirectoryGuard,
 } from "./directory-guard.js";
 import { FsSafeError } from "./errors.js";
-import { isNotFoundPathError } from "./path.js";
 import { assertNoPathAliasEscape } from "./path-policy.js";
 import {
   preparePinnedWriteMutationAdmission,
@@ -20,7 +19,7 @@ import { admitPathInsideRoot, sameNormalizedPathSpelling } from "./root-boundary
 import type { RootContext } from "./root-context.js";
 import { resolvePathInRoot } from "./root-context.js";
 import { errorCauseOptions, hardlinkedPathNotAllowedError, outsideWorkspaceError } from "./root-errors.js";
-import { inheritWriteTargetMode } from "./root-write-mode.js";
+import { inheritWriteTargetMode, inspectExistingRootWriteTarget } from "./root-write-mode.js";
 import {
   mutationSymlinkResolution,
   type MutationSymlinkPolicy,
@@ -402,14 +401,7 @@ export async function resolvePinnedWriteTargetInRoot(
     throw new FsSafeError("invalid-path", "invalid target path");
   }
   if (!overwrite) {
-    try {
-      const existing = fsSync.statSync(resolved);
-      if (!existing.isFile()) throw new FsSafeError("not-file", "not a file");
-      if (existing.nlink > 1) throw hardlinkedPathNotAllowedError();
-      throw new FsSafeError("already-exists", "file already exists");
-    } catch (error) {
-      if (!isNotFoundPathError(error)) throw error;
-    }
+    await inspectExistingRootWriteTarget(resolved, false);
   }
   const mode = overwrite
     ? await inheritWriteTargetMode({

@@ -8,6 +8,23 @@ import { hardlinkedPathNotAllowedError, outsideWorkspaceError } from "./root-err
 import { inspectFileIdentity } from "./strict-file-identity.js";
 import { admitPathInsideRoot, type RootBoundaryIdentity } from "./root-boundary.js";
 
+export async function inspectExistingRootWriteTarget(targetPath: string, overwrite: boolean) {
+  let existing: fsSync.BigIntStats;
+  try {
+    existing = overwrite
+      ? await inspectFileIdentity(() => fsSync.lstatSync(targetPath, { bigint: true }))
+      : fsSync.statSync(targetPath, { bigint: true });
+  } catch (error) {
+    if (isNotFoundPathError(error)) return undefined;
+    throw error;
+  }
+  if (overwrite && existing.isSymbolicLink()) throw new FsSafeError("path-alias", "path alias escape blocked");
+  if (!existing.isFile()) throw new FsSafeError("not-file", "not a file");
+  if (existing.nlink > 1n) throw hardlinkedPathNotAllowedError();
+  if (!overwrite) throw new FsSafeError("already-exists", "file already exists");
+  return existing;
+}
+
 // The caller has already resolved and guarded this write target.
 export async function inheritWriteTargetMode(params: {
   targetPath: string;
@@ -23,10 +40,8 @@ export async function inheritWriteTargetMode(params: {
     });
     if (!admittedTarget) throw outsideWorkspaceError();
     const targetPath = admittedTarget.path;
-    const existing = await inspectFileIdentity(() => fsSync.lstatSync(targetPath, { bigint: true }));
-    if (existing.isSymbolicLink()) throw new FsSafeError("path-alias", "path alias escape blocked");
-    if (!existing.isFile()) throw new FsSafeError("not-file", "not a file");
-    if (existing.nlink > 1n) throw hardlinkedPathNotAllowedError();
+    const existing = await inspectExistingRootWriteTarget(targetPath, true);
+    if (!existing) return params.requestedMode ?? 0o600;
     // Preserve read-open admission of the pre-existing destination. access(2)
     // is not equivalent: it ignores ACLs on Windows and capabilities on Linux.
     const handle = await fs.open(targetPath, resolveReadOpenFlags());
