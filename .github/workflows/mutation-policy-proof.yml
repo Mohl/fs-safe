@@ -50,12 +50,28 @@ on:
         description: Run only hosted Linux campaigns when AWS allocation is unavailable
         type: boolean
         default: false
+      windows_only:
+        description: Run a Windows-only campaign, including targeted coverage follow-ups
+        type: boolean
+        default: false
+      seed:
+        description: First adversarial seed
+        type: number
+        default: 1
+      seeds:
+        description: Number of adversarial seeds
+        type: number
+        default: 60
+      seconds:
+        description: Seconds per seed (at least 20)
+        type: number
+        default: 20
 
 permissions:
   contents: read
 
 concurrency:
-  group: mutation-policy-proof-${{ github.event.pull_request.number || github.ref }}
+  group: mutation-policy-proof-${{ github.event.pull_request.number || github.ref }}-${{ inputs.windows_only && 'windows' || 'default' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -175,7 +191,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(inputs.linux && '["ubuntu-latest"]' || '["macos-15", "windows-latest"]') }}
+        os: ${{ fromJSON(inputs.windows_only && '["windows-latest"]' || inputs.linux && '["ubuntu-latest"]' || '["macos-15", "windows-latest"]') }}
     defaults:
       run:
         shell: bash
@@ -201,6 +217,10 @@ jobs:
         run: node scripts/root-race/paired-methods.mjs
       - name: Adversarial campaign and exact-source receipt
         if: ${{ !cancelled() }}
+        env:
+          ROOT_RACE_START_SEED: ${{ inputs.seed || 1 }}
+          ROOT_RACE_SEEDS: ${{ inputs.seeds || 60 }}
+          ROOT_RACE_SECONDS: ${{ inputs.seconds || 20 }}
         run: |
           mkdir -p .artifacts
           git rev-parse HEAD > .artifacts/source.txt

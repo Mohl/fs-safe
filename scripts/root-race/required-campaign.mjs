@@ -7,6 +7,12 @@ import { execFileSync, spawn } from 'node:child_process';
 const output = path.resolve('.artifacts/required-root');
 fs.mkdirSync(output, { recursive: true });
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+const startSeed = Number(process.env.ROOT_RACE_START_SEED ?? 1);
+const seedCount = Number(process.env.ROOT_RACE_SEEDS ?? 60);
+const secondsPerSeed = Number(process.env.ROOT_RACE_SECONDS ?? 20);
+assert(Number.isSafeInteger(startSeed) && startSeed >= 1);
+assert(Number.isSafeInteger(seedCount) && seedCount >= 1);
+assert(Number.isSafeInteger(secondsPerSeed) && secondsPerSeed >= 20);
 const lanes = process.platform === 'linux' ? ['openat2', 'fallback'] : [process.platform];
 const summary = [];
 const failClosed = process.argv.includes('--fail-closed');
@@ -37,7 +43,8 @@ if (failClosed) {
     const file = path.join(output, `${lane}.jsonl`);
     const log = fs.createWriteStream(path.join(output, `${lane}.log`), { flags: 'wx' });
     const child = spawn(process.execPath, ['scripts/root-race/run.mjs', '--mode=require',
-      `--ops=${operations.join(',')}`, '--seeds=60', '--seconds=20', `--output=${file}`], { env });
+      `--ops=${operations.join(',')}`, `--seed=${startSeed}`, `--seeds=${seedCount}`,
+      `--seconds=${secondsPerSeed}`, `--output=${file}`], { env });
     child.stdout.on('data', data => { process.stdout.write(data); log.write(data); });
     child.stderr.on('data', data => { process.stderr.write(data); log.write(data); });
     const result = await new Promise((resolve, reject) => {
@@ -53,13 +60,14 @@ if (failClosed) {
     if (lane === 'fallback') assert.equal(configuration.nativeContainment, 'best-effort');
     const complete = rows.at(-1);
     assert.equal(complete.event, 'complete');
-    assert.equal(complete.seeds, 60);
+    assert.equal(complete.seeds, seedCount);
     assert.equal(complete.affectedSeeds, 0);
     assert.equal(complete.incompleteSeeds, 0);
     const seeds = rows.filter(row => row.event === 'seed');
     const successes = Object.fromEntries(operations.map(operation => [operation,
       seeds.reduce((sum, row) => sum + row.metrics[operation].success, 0)]));
-    summary.push({ head, lane, platform: process.platform, seconds: 1200, operations,
+    summary.push({ head, lane, platform: process.platform, startSeed, seeds: seedCount,
+      secondsPerSeed, seconds: seedCount * secondsPerSeed, operations,
       calls: seeds.reduce((sum, row) => sum + row.operations, 0), successes,
       outsideEffects: 0, deniedEffects: 0, recursive: recursive ? 'exercised' : 'asserted-fail-closed' });
     fs.writeFileSync(path.join(output, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
