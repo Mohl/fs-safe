@@ -548,12 +548,14 @@ export class RootHandle implements Root {
       mutationOptions.denyMutations, mutationOptions.mutationSymlinks,
     ) ?? {};
     const overwrite = options.overwrite ?? false;
+    const requireNative = getFsSafeNativeConfig().mode === "require";
     await assertMoveMutationAllowed(this.context, {
       fromRelative,
       toRelative,
       denyMutations,
     });
     await movePathFallback(this.context, {
+      requireNative,
       fromRelative,
       denyMutations,
       assertBeforeMutation,
@@ -673,24 +675,18 @@ export async function openLocalFileSafely(params: { filePath: string }): Promise
   return (await openVerifiedLocalFile(filePath)).opened;
 }
 
-export type WritableOpenResult = OpenResult & {
-  createdForWrite: boolean;
-};
+export type WritableOpenResult = OpenResult & { createdForWrite: boolean };
 
 function emitWriteBoundaryWarning(reason: string) {
   logWarn(`security: fs-safe write boundary warning (${reason})`);
 }
-
-
 function openWritableFileInRoot(root: RootContext, params: WritableFileInRootParams, options: { createIfMissing: false }): Promise<OpenedWritableFileInRoot | MissingWritableFileInRoot>;
 function openWritableFileInRoot(root: RootContext, params: WritableFileInRootParams): Promise<OpenedWritableFileInRoot>;
-async function openWritableFileInRoot(
-  root: RootContext,
-  params: WritableFileInRootParams,
-  options?: { createIfMissing: false },
-): Promise<OpenedWritableFileInRoot | MissingWritableFileInRoot> {
-  const policy = snapshotPinnedMutationPolicy(params.denyMutations, params.mutationSymlinks);
-  params = { ...params, ...policy };
+async function openWritableFileInRoot(root: RootContext, params: WritableFileInRootParams,
+  options?: { createIfMissing: false }): Promise<OpenedWritableFileInRoot | MissingWritableFileInRoot> {
+  const requireNative = getFsSafeNativeConfig().mode === "require";
+  const policy = requireNative ? snapshotPinnedMutationPolicy(params.denyMutations, params.mutationSymlinks) : undefined;
+  if (policy) params = { ...params, ...policy };
   const guardedTarget = params.denyMutations === undefined && params.mutationSymlinks === undefined
     ? undefined
     : await resolveGuardedWriteTargetInRoot(root, {
@@ -704,7 +700,7 @@ async function openWritableFileInRoot(
   const resolveCurrent = async () => (await resolveGuardedWritePathInRoot(root, {
     relativePath: params.relativePath, ...policy,
   })).resolved;
-  const nativeParent = params.mkdir !== false && await tryMkdirRootNative({
+  const nativeParent = requireNative && params.mkdir !== false && await tryMkdirRootNative({
     originalPath: params.relativePath,
     root, directory: path.dirname(resolved), target: resolved, mkdir: true, policy,
     resolveCurrent, assertBeforeMutation: params.assertBeforeMutation,
@@ -778,7 +774,7 @@ async function openWritableFileInRoot(
         return { missing: true, targetPath: ioPath, parentGuard, writeSelection: writePathSelection };
       }
       if (writePathSelection) await refreshRootWritePathSelection(writePathSelection);
-      const nativeCreated = await tryOpenCreateRootNative({
+      const nativeCreated = requireNative ? await tryOpenCreateRootNative({
         originalPath: params.relativePath,
         root, directory: path.dirname(ioPath), target: ioPath, mkdir: false, policy,
         resolveCurrent, assertBeforeMutation() {
@@ -786,7 +782,7 @@ async function openWritableFileInRoot(
           if (writePathSelection) assertRootWritePathSelectionSync(root, writePathSelection);
         },
         flags: createFlags, existingFlags, mode,
-      });
+      }) : undefined;
       if (nativeCreated) handle = nativeCreated.handle;
       else {
         params.assertBeforeMutation?.();
@@ -992,7 +988,8 @@ async function removePathInRoot(
   params: RootRemoveOptions & { relativePath: string },
 ): Promise<void> {
   validatePinnedRelativePath(params.relativePath);
-  params = { ...params, ...snapshotPinnedMutationPolicy(params.denyMutations, params.mutationSymlinks) };
+  const requireNative = getFsSafeNativeConfig().mode === "require";
+  if (requireNative) params = { ...params, ...snapshotPinnedMutationPolicy(params.denyMutations, params.mutationSymlinks) };
   const removalReceipts = params.recursive ? undefined : new RemovalPathReceipts();
   const resolved = await resolvePinnedPathInRoot(root, {
     relativePath: params.relativePath,
@@ -1002,7 +999,7 @@ async function removePathInRoot(
     removalReceipts,
   });
   try {
-    if (await tryRemovePathInRootNative(root, resolved.resolved, params, removalReceipts)) return;
+    if (requireNative && await tryRemovePathInRootNative(root, resolved.resolved, params, removalReceipts)) return;
     await removePathInRootFallback(root, resolved.resolved, params, removalReceipts);
   } catch (error) {
     if (params.recursive) throw error;
@@ -1017,6 +1014,7 @@ async function mkdirPathInRoot(
     allowRoot?: boolean;
   },
 ): Promise<void> {
+  const requireNative = getFsSafeNativeConfig().mode === "require";
   const privateMode = resolveCreationPermissions(params, true).private;
   validatePinnedRelativePath(params.relativePath);
   const policy = params.denyMutations === undefined && params.mutationSymlinks === undefined
@@ -1027,7 +1025,7 @@ async function mkdirPathInRoot(
     ? async () => await resolvePinnedPathInRoot(root, resolution)
     : undefined;
   const resolved = await resolvePinnedPathInRoot(root, resolution);
-  if (await tryMkdirRootNative({
+  if (requireNative && await tryMkdirRootNative({
     originalPath: params.relativePath,
     root, directory: resolved.resolved, target: resolved.resolved, mkdir: true, private: privateMode,
     policy, resolveCurrent: async () => (await resolvePinnedPathInRoot(root, resolution)).resolved,
@@ -1365,6 +1363,7 @@ async function movePathFallback(
   root: RootContext,
   params: RootMoveOptions & Parameters<typeof assertMoveMutationAllowed>[1] & {
     overwrite: boolean;
+    requireNative: boolean;
   },
 ): Promise<void> {
   const originalRoutes = params.overwrite && params.assertBeforeMutation
@@ -1419,8 +1418,9 @@ async function movePathFallback(
   if (!pinnedTarget) {
     throw new FsSafeError("path-mismatch", "destination admission was not completed");
   }
-  const nativeReplace = params.overwrite ? getNativeBinding()?.renameReplaceWithIdentity : undefined;
-  if (params.overwrite && !nativeReplace && getFsSafeNativeConfig().mode === "require") {
+  const nativeReplace = params.overwrite && params.requireNative
+    ? getNativeBinding()?.renameReplaceWithIdentity : undefined;
+  if (params.overwrite && !nativeReplace && params.requireNative) {
     throw new FsSafeError("helper-unavailable", "native overwrite move is unavailable");
   }
   if (!params.overwrite || nativeReplace) {

@@ -45,6 +45,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      linux:
+        description: Run only hosted Linux campaigns when AWS allocation is unavailable
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -166,11 +171,11 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     name: Root mutation proof (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 75
+    timeout-minutes: 100
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, windows-latest]
+        os: ${{ fromJSON(inputs.linux && '["ubuntu-latest"]' || '["macos-15", "windows-latest"]') }}
     defaults:
       run:
         shell: bash
@@ -191,18 +196,16 @@ jobs:
       - run: pnpm build && pnpm native:build && pnpm native:test
       - name: Full checks
         run: pnpm check
+      - name: Interleaved method benchmarks with A/A control
+        if: runner.os == 'Linux'
+        run: node scripts/root-race/paired-methods.mjs
       - name: Adversarial campaign and exact-source receipt
         if: ${{ !cancelled() }}
         run: |
           mkdir -p .artifacts
           git rev-parse HEAD > .artifacts/source.txt
           node --version >> .artifacts/source.txt
-          operations=remove,removeTree,rename,mkdir,appendCreate
-          if [[ "$RUNNER_OS" == Windows ]]; then
-            # The native integration test above proves recursive directories fail closed.
-            operations=remove,rename,mkdir,appendCreate
-          fi
-          node scripts/root-race/run.mjs --mode=require --ops="$operations" --seeds=60 --seconds=20 --output=.artifacts/require-races.jsonl > .artifacts/require-races.log 2>&1
+          node scripts/root-race/required-campaign.mjs
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
