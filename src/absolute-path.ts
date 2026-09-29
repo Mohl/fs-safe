@@ -47,37 +47,32 @@ export type EnsureAbsoluteDirectoryResult =
   | { ok: false; code: FsSafeErrorCode; error: FsSafeError };
 
 type EnsureAbsoluteDirectoryFailure = Extract<EnsureAbsoluteDirectoryResult, { ok: false }>;
-type DirectoryGuardCheckResult = { ok: true } | EnsureAbsoluteDirectoryFailure;
-type DirectoryGuardCreateResult =
-  | { ok: true; guard: AsyncDirectoryGuard }
-  | EnsureAbsoluteDirectoryFailure;
-type DirectoryPrefixResult =
-  | {
-      ok: true;
-      ancestorPath: string;
-      missingSegments: string[];
-    }
-  | EnsureAbsoluteDirectoryFailure;
+
+const classifiedDirectoryFailures = new WeakSet<object>();
+
+function propagateDirectoryFailure(failure: EnsureAbsoluteDirectoryFailure): never {
+  classifiedDirectoryFailures.add(failure);
+  throw failure;
+}
 
 function ensureDirectoryFailure(
   code: FsSafeErrorCode,
   message: string,
   cause?: unknown,
-): EnsureAbsoluteDirectoryFailure {
-  return {
+): never {
+  return propagateDirectoryFailure({
     ok: false,
     code,
     error: new FsSafeError(code, message, { cause }),
-  };
+  });
 }
 
-async function assertGuardResult(
+async function assertPreparedDirectoryGuard(
   guard: AsyncDirectoryGuard,
   scopeLabel: string,
-): Promise<DirectoryGuardCheckResult> {
+): Promise<void> {
   try {
     await assertAsyncDirectoryGuard(guard);
-    return { ok: true };
   } catch (err) {
     if (err instanceof FsSafeError) {
       return await directoryGuardFailure(err, guard.dir, scopeLabel);
@@ -86,12 +81,12 @@ async function assertGuardResult(
   }
 }
 
-async function createDirectoryGuardResult(
+async function createPreparedDirectoryGuard(
   dir: string,
   scopeLabel: string,
-): Promise<DirectoryGuardCreateResult> {
+): Promise<AsyncDirectoryGuard> {
   try {
-    return { ok: true, guard: await createAsyncDirectoryGuard(dir) };
+    return await createAsyncDirectoryGuard(dir);
   } catch (err) {
     if (err instanceof FsSafeError) {
       return await directoryGuardFailure(err, dir, scopeLabel);
@@ -103,7 +98,7 @@ async function createDirectoryGuardResult(
 function classifyDirectoryLookupError(
   err: unknown,
   scopeLabel: string,
-): EnsureAbsoluteDirectoryFailure | null {
+): void {
   const code = (err as NodeJS.ErrnoException).code;
   if (code === "ENOENT") {
     return ensureDirectoryFailure(
@@ -119,13 +114,12 @@ function classifyDirectoryLookupError(
       err,
     );
   }
-  return null;
 }
 
 function classifyExistingDirectorySegment(
   stat: Stats,
   scopeLabel: string,
-): EnsureAbsoluteDirectoryFailure | null {
+): void {
   if (stat.isSymbolicLink()) {
     return ensureDirectoryFailure(
       "symlink",
@@ -135,55 +129,43 @@ function classifyExistingDirectorySegment(
   if (!stat.isDirectory()) {
     return ensureDirectoryFailure("not-file", `path must be a real directory within ${scopeLabel}`);
   }
-  return null;
 }
 
 async function directoryGuardFailure(
   err: FsSafeError,
   dir: string,
   scopeLabel: string,
-): Promise<EnsureAbsoluteDirectoryFailure> {
+): Promise<never> {
   if (err.code !== "not-file") {
-    return { ok: false, code: err.code, error: err };
+    return propagateDirectoryFailure({ ok: false, code: err.code, error: err });
   }
 
   try {
     const stat = fsSync.lstatSync(pathForWindowsFilesystem(dir));
-    const failure = classifyExistingDirectorySegment(stat, scopeLabel);
-    if (failure) {
-      return failure;
-    }
+    classifyExistingDirectorySegment(stat, scopeLabel);
   } catch (lookupErr) {
-    const failure = classifyDirectoryLookupError(lookupErr, scopeLabel);
-    if (failure) {
-      return failure;
-    }
+    if (classifiedDirectoryFailures.has(lookupErr as object)) throw lookupErr;
+    classifyDirectoryLookupError(lookupErr, scopeLabel);
     throw lookupErr;
   }
-  return { ok: false, code: err.code, error: err };
+  return propagateDirectoryFailure({ ok: false, code: err.code, error: err });
 }
 
 async function resolveTrustedDirectoryPrefix(
   targetPath: string,
   scopeLabel: string,
-): Promise<DirectoryPrefixResult> {
+): Promise<{ ancestorPath: string; missingSegments: string[] }> {
   const root = path.parse(targetPath).root;
   let current = root;
   let currentStat: Stats;
   try {
     currentStat = fsSync.lstatSync(pathForWindowsFilesystem(current));
   } catch (err) {
-    const failure = classifyDirectoryLookupError(err, scopeLabel);
-    if (failure) {
-      return failure;
-    }
+    classifyDirectoryLookupError(err, scopeLabel);
     throw err;
   }
 
-  const rootFailure = classifyExistingDirectorySegment(currentStat, scopeLabel);
-  if (rootFailure) {
-    return rootFailure;
-  }
+  classifyExistingDirectorySegment(currentStat, scopeLabel);
 
   // Walk forward with lstat. Looking backward for the "nearest existing
   // ancestor" can cross an existing suffix through a symlinked parent before
@@ -197,30 +179,24 @@ async function resolveTrustedDirectoryPrefix(
     const next = path.join(current, segment);
     try {
       const nextStat = fsSync.lstatSync(pathForWindowsFilesystem(next));
-      const segmentFailure = classifyExistingDirectorySegment(nextStat, scopeLabel);
-      if (segmentFailure) {
-        return segmentFailure;
-      }
+      classifyExistingDirectorySegment(nextStat, scopeLabel);
       current = next;
       currentStat = nextStat;
     } catch (err) {
+      if (classifiedDirectoryFailures.has(err as object)) throw err;
       const code = (err as NodeJS.ErrnoException).code;
       if (code === "ENOENT") {
         return {
-          ok: true,
           ancestorPath: current,
           missingSegments: segments.slice(index),
         };
       }
-      const failure = classifyDirectoryLookupError(err, scopeLabel);
-      if (failure) {
-        return failure;
-      }
+      classifyDirectoryLookupError(err, scopeLabel);
       throw err;
     }
   }
 
-  return { ok: true, ancestorPath: current, missingSegments: [] };
+  return { ancestorPath: current, missingSegments: [] };
 }
 
 export function assertAbsolutePathInput(filePath: string): string {
@@ -265,83 +241,69 @@ export async function ensureAbsoluteDirectory(
   options: EnsureAbsoluteDirectoryOptions = {},
 ): Promise<EnsureAbsoluteDirectoryResult> {
   const scopeLabel = options.scopeLabel ?? "directory";
-  let targetPath: string;
   try {
-    targetPath = assertAbsolutePathInput(dirPath);
-  } catch (err) {
-    if (err instanceof FsSafeError) {
-      return { ok: false, code: err.code, error: err };
-    }
-    throw err;
-  }
-
-  const prefix = await resolveTrustedDirectoryPrefix(targetPath, scopeLabel);
-  if (!prefix.ok) {
-    return prefix;
-  }
-
-  let current = prefix.ancestorPath;
-  const initialGuard = await createDirectoryGuardResult(prefix.ancestorPath, scopeLabel);
-  if (!initialGuard.ok) {
-    return initialGuard;
-  }
-  let currentGuard: AsyncDirectoryGuard = initialGuard.guard;
-  for (const segment of prefix.missingSegments) {
-    current = path.join(current, segment);
-    while (true) {
-      const guardResult = await assertGuardResult(currentGuard, scopeLabel);
-      if (!guardResult.ok) {
-        return guardResult;
+    let targetPath: string;
+    try {
+      targetPath = assertAbsolutePathInput(dirPath);
+    } catch (err) {
+      if (err instanceof FsSafeError) {
+        return { ok: false, code: err.code, error: err };
       }
-      try {
-        const stat = fsSync.lstatSync(current);
-        if (stat.isSymbolicLink()) {
-          return ensureDirectoryFailure(
-            "symlink",
-            `directory path traverses a symlink within ${scopeLabel}`,
-          );
-        }
-        if (!stat.isDirectory()) {
-          return ensureDirectoryFailure(
-            "not-file",
-            `path must be a real directory within ${scopeLabel}`,
-          );
-        }
-        break;
-      } catch (err) {
-        if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
-          throw err;
-        }
-        const parentStillValid = await assertGuardResult(currentGuard, scopeLabel);
-        if (!parentStillValid.ok) {
-          return parentStillValid;
-        }
+      throw err;
+    }
+
+    const prefix = await resolveTrustedDirectoryPrefix(targetPath, scopeLabel);
+    let current = prefix.ancestorPath;
+    let currentGuard = await createPreparedDirectoryGuard(prefix.ancestorPath, scopeLabel);
+    for (const segment of prefix.missingSegments) {
+      current = path.join(current, segment);
+      while (true) {
+        await assertPreparedDirectoryGuard(currentGuard, scopeLabel);
         try {
-          await fs.mkdir(current, { mode: options.mode });
-        } catch (mkdirErr) {
-          if ((mkdirErr as NodeJS.ErrnoException).code === "EEXIST") {
-            continue;
+          const stat = fsSync.lstatSync(current);
+          if (stat.isSymbolicLink()) {
+            return ensureDirectoryFailure(
+              "symlink",
+              `directory path traverses a symlink within ${scopeLabel}`,
+            );
           }
-          throw mkdirErr;
+          if (!stat.isDirectory()) {
+            return ensureDirectoryFailure(
+              "not-file",
+              `path must be a real directory within ${scopeLabel}`,
+            );
+          }
+          break;
+        } catch (err) {
+          if (classifiedDirectoryFailures.has(err as object)) throw err;
+          if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+            throw err;
+          }
+          await assertPreparedDirectoryGuard(currentGuard, scopeLabel);
+          try {
+            await fs.mkdir(current, { mode: options.mode });
+          } catch (mkdirErr) {
+            if ((mkdirErr as NodeJS.ErrnoException).code === "EEXIST") {
+              continue;
+            }
+            throw mkdirErr;
+          }
         }
       }
+      const nextGuard = await createPreparedDirectoryGuard(current, scopeLabel);
+      await assertPreparedDirectoryGuard(currentGuard, scopeLabel);
+      currentGuard = nextGuard;
     }
-    const nextGuard = await createDirectoryGuardResult(current, scopeLabel);
-    if (!nextGuard.ok) {
-      return nextGuard;
-    }
-    const previousGuardStillValid = await assertGuardResult(currentGuard, scopeLabel);
-    if (!previousGuardStillValid.ok) {
-      return previousGuardStillValid;
-    }
-    currentGuard = nextGuard.guard;
-  }
 
-  const finalGuardResult = await assertGuardResult(currentGuard, scopeLabel);
-  if (!finalGuardResult.ok) {
-    return finalGuardResult;
+    await assertPreparedDirectoryGuard(currentGuard, scopeLabel);
+    return { ok: true, path: targetPath };
+  } catch (error) {
+    // Weak identity checks do not inspect arbitrary thrown values or proxies.
+    if (classifiedDirectoryFailures.delete(error as object)) {
+      return error as EnsureAbsoluteDirectoryFailure;
+    }
+    throw error;
   }
-  return { ok: true, path: targetPath };
 }
 
 export async function canonicalPathFromExistingAncestor(filePath: string): Promise<string> {
