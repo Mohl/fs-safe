@@ -15,12 +15,33 @@ from unittest.mock import patch
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import HERE, PACKET_HASHES, digest, read, reserve_budget, run, write
+from common import HERE, PACKET_HASHES, digest, private_layout, read, reserve_budget, run, write
 from experiment import NAMES, analyze_calibration, calibration_schedule, control_bound, parse_iostat
 from stage2 import observed_run
 
 
 class CarrierTests(unittest.TestCase):
+    def test_private_layout_rejects_escaping_targets_and_temp_directory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            workspace = Path(temporary) / 'workspace'
+            root = workspace / 'fs-safe-preobservation.noindex'
+            root.mkdir(parents=True)
+            write(root / 'lifecycle.json', dict(originalHome=os.environ.get('HOME')))
+            environment = dict(FS_SAFE_PROOF_ROOT=str(root), GITHUB_WORKSPACE=str(workspace))
+            for name, relative in {'EVIDENCE_ROOT': 'evidence', 'TMPDIR': 'tmp', 'CARGO_HOME': 'tooling/cargo',
+                                  'RUSTUP_HOME': 'tooling/rustup', 'PNPM_HOME': 'tooling/pnpm',
+                                  'npm_config_cache': 'caches/npm', 'XDG_CACHE_HOME': 'caches',
+                                  'CLANG_MODULE_CACHE_PATH': 'caches/clang'}.items():
+                environment[name] = str(root / relative)
+            with patch.dict(os.environ, environment):
+                self.assertEqual(private_layout()['root'], root.resolve())
+                (root / 'target-A').symlink_to(Path(temporary) / 'outside', target_is_directory=True)
+                with self.assertRaises(ValueError):
+                    private_layout()
+                (root / 'target-A').unlink()
+                with patch.dict(os.environ, TMPDIR=temporary), self.assertRaises(ValueError):
+                    private_layout()
+
     def test_resource_budget_refuses_launch_without_shortening_timeout(self):
         with patch('common.time.monotonic', return_value=100), patch('common.subprocess.Popen') as launch:
             reserve_budget(710, 600)
@@ -31,17 +52,19 @@ class CarrierTests(unittest.TestCase):
     def test_collector_retains_partial_failed_consumers(self):
         with tempfile.TemporaryDirectory() as temporary:
             top = Path(temporary)
-            evidence, workspace, runtime = top / 'evidence', top / 'workspace', top / 'runtime'
-            runtime.mkdir()
+            workspace = top / 'workspace'
+            private_root = workspace / 'fs-safe-preobservation.noindex'
+            evidence = private_root / 'evidence'
+            private_root.mkdir(parents=True)
             for arm in ['A', 'B']:
-                consumer = runtime / ('preobservation-consumer-' + arm)
+                consumer = private_root / ('consumer-' + arm)
                 (consumer / 'node_modules').mkdir(parents=True)
                 (consumer / 'node_modules/partial.node').write_bytes(b'synthetic incomplete install')
-            with patch.dict(os.environ, EVIDENCE_ROOT=str(evidence), GITHUB_WORKSPACE=str(workspace), RUNNER_TEMP=str(runtime)):
+            with patch.dict(os.environ, EVIDENCE_ROOT=str(evidence), GITHUB_WORKSPACE=str(workspace), FS_SAFE_PROOF_ROOT=str(private_root)):
                 prepare = runpy.run_path(str(HERE / 'prepare.py'))
                 prepare['collect']()
             for arm in ['A', 'B']:
-                source = runtime / ('preobservation-consumer-' + arm) / 'node_modules/partial.node'
+                source = private_root / ('consumer-' + arm) / 'node_modules/partial.node'
                 self.assertEqual(read(evidence / arm / 'consumer-final-files.json')['node_modules/partial.node'], digest(source))
                 with tarfile.open(evidence / arm / 'consumer-final.tar.gz') as archive:
                     self.assertEqual(archive.extractfile('consumer/node_modules/partial.node').read(), source.read_bytes())

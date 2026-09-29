@@ -1,4 +1,4 @@
-name: Isolated macOS pre-observation qualification
+name: Larger macOS VM pre-observation suitability
 
 on:
   workflow_dispatch:
@@ -12,12 +12,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: preobservation-isolated-macos
+  group: preobservation-larger-macos
   cancel-in-progress: false
 
 jobs:
   qualify:
-    runs-on: macos-15
+    runs-on: macos-15-xlarge
     timeout-minutes: 120
     defaults:
       run:
@@ -26,61 +26,67 @@ jobs:
       RUSTUP_TOOLCHAIN: 1.98.1
       EXPECTED_HARNESS_SHA: ${{ inputs.expected_harness_sha }}
       WORKFLOW_SHA: ${{ github.workflow_sha }}
-      EVIDENCE_ROOT: ${{ github.workspace }}/preobservation-evidence
+      FS_SAFE_PROOF_ROOT: ${{ github.workspace }}/fs-safe-preobservation.noindex
+      EVIDENCE_ROOT: ${{ github.workspace }}/fs-safe-preobservation.noindex/evidence
+      TMPDIR: ${{ github.workspace }}/fs-safe-preobservation.noindex/tmp
+      CARGO_HOME: ${{ github.workspace }}/fs-safe-preobservation.noindex/tooling/cargo
+      RUSTUP_HOME: ${{ github.workspace }}/fs-safe-preobservation.noindex/tooling/rustup
+      PNPM_HOME: ${{ github.workspace }}/fs-safe-preobservation.noindex/tooling/pnpm
+      npm_config_cache: ${{ github.workspace }}/fs-safe-preobservation.noindex/caches/npm
+      XDG_CACHE_HOME: ${{ github.workspace }}/fs-safe-preobservation.noindex/caches
+      CLANG_MODULE_CACHE_PATH: ${{ github.workspace }}/fs-safe-preobservation.noindex/caches/clang
     steps:
+      - name: Establish private paths and task-work deadline
+        run: |
+          python3 -I - <<'PY'
+          import json, os, pathlib, time
+          root = pathlib.Path(os.environ['FS_SAFE_PROOF_ROOT'])
+          root.mkdir()
+          (root / 'tmp').mkdir()
+          with (root / 'lifecycle.json').open('x') as stream:
+              json.dump(dict(startedMonotonic=time.monotonic(), taskWorkSeconds=6600, originalHome=os.environ.get('HOME')), stream)
+          PY
       - name: Check out reviewed carrier
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.workflow_sha }}
-          path: harness
+          path: fs-safe-preobservation.noindex/harness
           persist-credentials: false
       - name: Check carrier and environment before setup
         run: |
-          python3 -I "$GITHUB_WORKSPACE/harness/scripts/qualification/preobservation/prepare.py" admit
+          python3 -I "$FS_SAFE_PROOF_ROOT/harness/scripts/qualification/preobservation/prepare.py" admit
       - name: Check out exact baseline
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: e85a5ec94704eed140d68affa72ec12174ca788c
-          path: baseline
+          ref: 9543f52cc075385e149c130c32927a25e77dc4f6
+          path: fs-safe-preobservation.noindex/baseline
           persist-credentials: false
       - name: Check out exact candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: 66b80a1e94eedc3ef822590e67f2227fd8d1faf1
-          path: candidate
+          ref: d27b43ac9373869af42548b6f296d9bd9b130936
+          path: fs-safe-preobservation.noindex/candidate
           persist-credentials: false
-      - name: Set up pnpm
-        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 12.4.2
-          run_install: false
-      - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24.21.0
-      - name: Install fixed Rust toolchain
+      - name: Install pinned tools beneath the private root
         run: |
-          rustup toolchain install 1.98.1 --profile minimal --component llvm-tools-preview --target wasm32-unknown-unknown 2>&1 | tee "$EVIDENCE_ROOT/toolchain-install.log"
-      - name: Set up portable archive compiler
-        run: |
-          node "$GITHUB_WORKSPACE/harness/.github/actions/setup-archive-llvm/install.mjs" 2>&1 | tee "$EVIDENCE_ROOT/archive-compiler-install.log"
+          python3 -I "$FS_SAFE_PROOF_ROOT/harness/scripts/qualification/preobservation/bootstrap.py"
       - name: Build and qualify both installations
         timeout-minutes: 45
         run: |
-          python3 -I "$GITHUB_WORKSPACE/harness/scripts/qualification/preobservation/prepare.py" build
+          python3 -I "$FS_SAFE_PROOF_ROOT/harness/scripts/qualification/preobservation/prepare.py" build
       - name: Run one diagnostic and conditional frozen campaign
         timeout-minutes: 60
         run: |
-          python3 -I "$GITHUB_WORKSPACE/harness/scripts/qualification/preobservation/experiment.py" "$EVIDENCE_ROOT"
+          python3 -I "$FS_SAFE_PROOF_ROOT/harness/scripts/qualification/preobservation/experiment.py" "$EVIDENCE_ROOT"
       - name: Hash all retained evidence
         if: always()
         run: |
-          python3 -I "$GITHUB_WORKSPACE/harness/scripts/qualification/preobservation/prepare.py" collect
+          python3 -I "$FS_SAFE_PROOF_ROOT/harness/scripts/qualification/preobservation/prepare.py" collect
       - name: Upload complete evidence, including failures
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: preobservation-isolated-macos-${{ github.run_id }}-${{ github.run_attempt }}
+          name: preobservation-larger-macos-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.EVIDENCE_ROOT }}/
           if-no-files-found: error
           retention-days: 30

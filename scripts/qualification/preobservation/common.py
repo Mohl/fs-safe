@@ -14,9 +14,38 @@ PACKET_HASHES = {
     'PROTOCOL.md': '6635e1dea370ef8b55f588d129aed20b7878349409bbc51e017ec1b401ce3f54',
 }
 SOURCES = {
-    'A': ('baseline', 'e85a5ec94704eed140d68affa72ec12174ca788c'),
-    'B': ('candidate', '66b80a1e94eedc3ef822590e67f2227fd8d1faf1'),
+    'A': ('baseline', '9543f52cc075385e149c130c32927a25e77dc4f6'),
+    'B': ('candidate', 'd27b43ac9373869af42548b6f296d9bd9b130936'),
 }
+PHASE_DEADLINE = None
+
+
+def private_layout():
+    root = Path(os.environ['FS_SAFE_PROOF_ROOT']).resolve()
+    require(root == Path(os.environ['GITHUB_WORKSPACE']).resolve() / 'fs-safe-preobservation.noindex', 'private root changed')
+    paths = {name: root / relative for name, relative in {
+        'root': '.', 'harness': 'harness', 'baseline': 'baseline', 'candidate': 'candidate',
+        'evidence': 'evidence', 'tooling': 'tooling', 'cargo': 'tooling/cargo', 'rustup': 'tooling/rustup',
+        'pnpm': 'tooling/pnpm', 'cache': 'caches', 'pnpmStore': 'caches/pnpm', 'npmCache': 'caches/npm',
+        'clangCache': 'caches/clang', 'targetA': 'target-A', 'targetB': 'target-B',
+        'consumerA': 'consumer-A', 'consumerB': 'consumer-B', 'tmp': 'tmp',
+    }.items()}
+    for name, path in paths.items():
+        require(path.resolve().is_relative_to(root), 'private path escaped: ' + name)
+    for name, key in {'EVIDENCE_ROOT': 'evidence', 'TMPDIR': 'tmp', 'CARGO_HOME': 'cargo', 'RUSTUP_HOME': 'rustup',
+                      'PNPM_HOME': 'pnpm', 'npm_config_cache': 'npmCache', 'XDG_CACHE_HOME': 'cache',
+                      'CLANG_MODULE_CACHE_PATH': 'clangCache'}.items():
+        require(Path(os.environ[name]).resolve() == paths[key].resolve(), name + ' changed')
+    require(os.environ.get('HOME') == read(root / 'lifecycle.json')['originalHome'], 'HOME changed')
+    return paths
+
+
+def task_deadline():
+    if 'FS_SAFE_PROOF_ROOT' not in os.environ:
+        return None
+    lifecycle = read(Path(os.environ['FS_SAFE_PROOF_ROOT']) / 'lifecycle.json')
+    require(lifecycle['taskWorkSeconds'] == 6600, 'task-work budget changed')
+    return lifecycle['startedMonotonic'] + lifecycle['taskWorkSeconds']
 
 
 def require(value, message):
@@ -64,6 +93,8 @@ def reserve_budget(deadline, seconds):
 
 def run(directory, name, command, *, cwd=None, extra_env=None, timeout=600, deadline=None):
     """Retain invocation/output; terminate the process group on any failure."""
+    deadlines = [value for value in [deadline, PHASE_DEADLINE, task_deadline()] if value is not None]
+    deadline = min(deadlines) if deadlines else None
     reserve_budget(deadline, timeout)
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
@@ -110,4 +141,4 @@ def verify_packet():
     require(digest(HERE / 'installed-probe.mjs') ==
             '4dc8ed95985443f2c4ea68f4b8ef08bdb9e9fee4d7ce04fc3f94ce3418e0c027', 'installed probe changed')
     require(digest(HERE / 'PROTOCOL.md') ==
-            'cbf264c040cb2398ba12209fe4681a4529fb7fe1ed521680ed11eca1292c6165', 'isolated protocol changed')
+            '14cd348dc1757676dc32bbbe98d70bd681be7ce0ad47dacab39e2e3874fd4aa4', 'larger-VM protocol changed')

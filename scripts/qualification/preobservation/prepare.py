@@ -8,13 +8,15 @@ import re
 import shutil
 import sys
 import tarfile
+import time
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import HERE, SOURCES, digest, pin_files, read, require, run, verify_packet, write
+import common
+from common import HERE, SOURCES, digest, pin_files, private_layout, read, require, run, verify_packet, write
 
 EVIDENCE = Path(os.environ['EVIDENCE_ROOT']).resolve()
-WORKSPACE = Path(os.environ['GITHUB_WORKSPACE']).resolve()
+WORKSPACE = Path(os.environ['FS_SAFE_PROOF_ROOT']).resolve()
 
 
 def source_receipt(source, expected, output, label):
@@ -44,6 +46,7 @@ def source_receipt(source, expected, output, label):
 def admit():
     EVIDENCE.mkdir(exist_ok=False)
     verify_packet()
+    layout = private_layout()
     expected = os.environ['EXPECTED_HARNESS_SHA']
     require(re.fullmatch('[0-9a-f]{40}', expected), 'expected carrier must be an exact commit')
     require(expected == os.environ['WORKFLOW_SHA'], 'dispatch must execute the reviewed workflow commit')
@@ -55,10 +58,10 @@ def admit():
     require(version.split('.')[0] == '15', 'macOS 15 required')
     run(EVIDENCE, 'os-build', ['sw_vers'])
     cpus = int(run(EVIDENCE, 'logical-cpus', ['sysctl', '-n', 'hw.logicalcpu']).strip())
-    require(cpus > 0 and os.getuid() != 0, 'non-root runner and logical CPU count required')
+    require(cpus == 5 and os.getuid() != 0, 'non-root runner with exactly five logical CPUs required')
     run(EVIDENCE, 'cpu-model', ['sysctl', '-n', 'machdep.cpu.brand_string'])
-    fixture = Path(os.environ['RUNNER_TEMP']) / 'preobservation-fixtures'
-    fixture.mkdir(exist_ok=False)
+    fixture = layout['tmp']
+    require(fixture.is_dir(), 'private temporary directory must precede checkout')
     disk = run(EVIDENCE, 'fixture-disk', ['/bin/df', '-k', fixture]).splitlines()[1].split()[0]
     require(disk.startswith('/dev/'), 'expected a local fixture volume')
     run(EVIDENCE, 'fixture-volume', ['/usr/sbin/diskutil', 'info', '-plist', disk])
@@ -68,17 +71,19 @@ def admit():
           runId=os.environ['GITHUB_RUN_ID'], runAttempt=os.environ['GITHUB_RUN_ATTEMPT'],
           job=os.environ['GITHUB_JOB'], imageVersion=os.environ.get('ImageVersion'),
           runnerImage=os.environ.get('ImageOS'), packetHashes=pin_files(EVIDENCE / 'carrier-packet')))
-    with Path(os.environ['GITHUB_ENV']).open('a') as stream:
-        stream.write(f'TMPDIR={fixture}\n')
+    write(EVIDENCE / 'layout.json', {name: str(path) for name, path in layout.items()})
+    shutil.copyfile(WORKSPACE / 'lifecycle.json', EVIDENCE / 'lifecycle.json')
 
 
 def check_integration(file):
     result = read(file)
     require(result['success'] is True and result['numFailedTests'] == 0, 'native integration failed')
-    require(result['numTotalTests'] == 26 and result['numPassedTests'] == 25 and result['numPendingTests'] == 1,
+    require(result['numTotalTests'] == 28 and result['numPassedTests'] == 25 and result['numPendingTests'] == 3,
             'native integration coverage changed')
     pending = [row['title'] for suite in result['testResults'] for row in suite['assertionResults'] if row['status'] != 'passed']
-    require(pending == ['fails closed for unsupported Windows recursive directories'], 'unexpected native integration skip')
+    require(pending == ['fails closed for unsupported Windows recursive directories',
+                       'preserves a nonempty Windows directory with not-empty (force=false)',
+                       'preserves a nonempty Windows directory with not-empty (force=true)'], 'unexpected native integration skip')
 
 
 def snapshot_consumer(consumer, output, name):
@@ -91,7 +96,9 @@ def snapshot_consumer(consumer, output, name):
 
 
 def build():
+    common.PHASE_DEADLINE = time.monotonic() + 2400
     verify_packet()
+    layout = private_layout()
     admission = read(EVIDENCE / 'admission.json')
     require(Path(os.environ['TMPDIR']).resolve() == Path(admission['fixtureDirectory']), 'fixture volume changed')
     for name in ['NODE_OPTIONS', 'NODE_PATH', 'NODE_V8_COVERAGE', 'NODE_COMPILE_CACHE', 'FS_SAFE_TEST_NO_OPENAT2',
@@ -100,17 +107,23 @@ def build():
     node = Path(run(EVIDENCE, 'node-path', ['node', '-p', 'process.execPath']).strip()).resolve()
     node_info = json.loads(run(EVIDENCE, 'node-version', [node, '-p', 'JSON.stringify({version:process.version,arch:process.arch,platform:process.platform})']))
     require(node_info == dict(version='v24.21.0', arch='arm64', platform='darwin'), 'wrong Node runtime')
+    runtime_tmp = run(EVIDENCE, 'runtime-tmpdir', [node, '-p', "require('node:os').tmpdir()"]).strip()
+    require(Path(runtime_tmp).resolve() == layout['tmp'].resolve(), 'Node fixture directory escaped private layout')
     require(run(EVIDENCE, 'pnpm-version', ['pnpm', '--version']).strip() == '12.4.2', 'wrong pnpm')
     pnpm = Path(shutil.which('pnpm')).resolve()
+    require(node.is_relative_to(WORKSPACE) and pnpm.is_relative_to(WORKSPACE), 'task runtimes escaped private root')
     write(EVIDENCE / 'pnpm-executable.json', dict(path=str(pnpm), sha256=digest(pnpm)))
     require(run(EVIDENCE, 'rust-version', ['rustc', '--version']).startswith('rustc 1.98.1 '), 'wrong Rust')
     for name in ['rustc', 'cargo']:
         executable = Path(run(EVIDENCE, name + '-path', ['rustup', 'which', name]).strip())
+        require(executable.resolve().is_relative_to(WORKSPACE), 'Rust payload escaped private root')
         write(EVIDENCE / (name + '-executable.json'), dict(path=str(executable), sha256=digest(executable)))
     run(EVIDENCE, 'clang-version', [os.environ['CC_wasm32_unknown_unknown'], '--version'])
     run(EVIDENCE, 'archiver-version', [os.environ['AR_wasm32_unknown_unknown'], '--version'])
     write(EVIDENCE / 'archive-tools.json', {name: dict(path=os.environ[name], sha256=digest(os.environ[name]))
           for name in ['CC_wasm32_unknown_unknown', 'AR_wasm32_unknown_unknown']})
+    require(all(Path(os.environ[name]).resolve().is_relative_to(WORKSPACE)
+                for name in ['CC_wasm32_unknown_unknown', 'AR_wasm32_unknown_unknown']), 'LLVM payload escaped private root')
     config = dict(node=str(node))
     pins = {str(node): digest(node)}
     for arm, (directory, commit) in SOURCES.items():
@@ -119,8 +132,8 @@ def build():
         source = WORKSPACE / directory
         source_receipt(source, commit, output, 'before')
         run(output, 'source-archive', ['git', 'archive', '--format=tar.gz', '-o', output / 'source.tar.gz', 'HEAD'], cwd=source)
-        env = dict(CARGO_TARGET_DIR=str(Path(os.environ['RUNNER_TEMP']) / ('cargo-' + arm)), NODE_DISABLE_COMPILE_CACHE='1')
-        run(output, 'install', ['pnpm', 'install', '--frozen-lockfile'], cwd=source, extra_env=env, timeout=600)
+        env = dict(CARGO_TARGET_DIR=str(layout['target' + arm]), NODE_DISABLE_COMPILE_CACHE='1')
+        run(output, 'install', ['pnpm', 'install', '--frozen-lockfile', '--store-dir', layout['pnpmStore']], cwd=source, extra_env=env, timeout=600)
         run(output, 'build', ['pnpm', 'build'], cwd=source, extra_env=env, timeout=900)
         run(output, 'native-build', ['pnpm', 'native:build'], cwd=source, extra_env=env, timeout=900)
         run(output, 'rust-tests', ['pnpm', 'native:test', '--locked'], cwd=source, extra_env=env, timeout=900)
@@ -142,12 +155,12 @@ def build():
         with tarfile.open(tarballs[native_package]) as archive:
             packed = archive.extractfile('package/fs-safe-native.node').read()
         require(hashlib.sha256(packed).hexdigest() == expected['nativeSha256'], 'packed addon differs from built addon')
-        consumer = Path(os.environ['RUNNER_TEMP']) / ('preobservation-consumer-' + arm)
+        consumer = layout['consumer' + arm]
         consumer.mkdir(exist_ok=False)
         dependencies = {name: 'file:' + str(file) for name, file in tarballs.items()}
         write(consumer / 'package.json', dict(name='preobservation-consumer', version='1.0.0', private=True, dependencies=dependencies))
         (consumer / 'pnpm-workspace.yaml').write_text('overrides:\n  ' + json.dumps(native_package) + ': ' + json.dumps(dependencies[native_package]) + '\n')
-        run(output, 'consumer-install', ['pnpm', 'install', '--ignore-scripts', '--no-frozen-lockfile'], cwd=consumer, extra_env=env, timeout=300)
+        run(output, 'consumer-install', ['pnpm', 'install', '--ignore-scripts', '--no-frozen-lockfile', '--store-dir', layout['pnpmStore']], cwd=consumer, extra_env=env, timeout=300)
         installed_files = snapshot_consumer(consumer, output, 'consumer')
         observed = json.loads(run(output, 'installed-probe', [node, HERE / 'installed-probe.mjs', expected_file], cwd=consumer,
                                   extra_env=dict(NODE_ENV='test', NODE_DISABLE_COMPILE_CACHE='1'), timeout=120))
@@ -174,7 +187,7 @@ def build():
 def collect():
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     for arm, (directory, _) in SOURCES.items():
-        consumer = Path(os.environ['RUNNER_TEMP']) / ('preobservation-consumer-' + arm)
+        consumer = WORKSPACE / ('consumer-' + arm)
         if consumer.exists():
             snapshot_consumer(consumer, EVIDENCE / arm, 'consumer-final')
         packages = WORKSPACE / directory / 'release-artifacts'

@@ -1,19 +1,31 @@
-# Isolated macOS qualification carrier
+# Larger macOS VM/private-path suitability carrier
 
 This task branch replaces the registered benchmark workflow with a dispatch-only
-carrier for PR #770. It is not a proposed replacement for the default branch's
+carrier for the prospectively registered integrated PR #770 trial. It is not a proposed replacement for the default branch's
 benchmark automation. Dispatch exactly the independently reviewed carrier commit
 and supply that same commit as `expected_harness_sha` after recording the complete
 carrier hashes. Attempts other than the first are rejected.
 
 The [protocol](PROTOCOL.md) defines the prospective hypothesis, environmental
 admission, baseline-only diagnostic, conditional source comparison, and limits.
-Both sources are freshly built with disjoint Cargo targets on macOS 15 arm64,
+Both integrated sources are freshly built with disjoint Cargo targets on the
+`macos-15-xlarge` five-CPU macOS 15 arm64 managed VM,
 Node 24.21.0, Rust 1.98.1, and pnpm 12.4.2. Rust tests, native-required integration
 tests, real host package smoke, and the frozen installed-package probe must pass
-before the fixed quiet interval. The integration suite has one declared
-Windows-only skip; the eight installed probe cases and all four timing endpoints
+before the fixed quiet interval. The integration suite executes 25 cases, with
+three explicitly named Windows-only skips; the eight installed probe cases per
+source and all four timing endpoints
 must execute with no skips and the actual loaded native addon.
+
+The first task step creates `fs-safe-preobservation.noindex` under the GitHub
+workspace and starts a fixed 110-minute task-work deadline. Checkouts, evidence,
+downloaded Node/pnpm/Rust/LLVM payloads, Cargo homes and targets, package caches,
+installed consumers, and `TMPDIR` all live below it. `layout.json` records the
+exact paths; resolved containment is checked before preparation and both stages.
+The `.noindex` name is a preparation treatment, not proof that indexing stopped.
+The experiment makes no dedicated-physical-host or indexing-causality claim.
+Preinstalled OS/tools and provider-owned action metadata may remain outside;
+`HOME`, Spotlight, services, and volume policy stay unchanged.
 
 `prepare.py` pins the reviewed workflow, source bytes and executable modes,
 runtime, package tarballs, built and installed addons, and consumer files. The
@@ -49,6 +61,10 @@ retains the original 600-second deadline. An overall deadline makes the study
 incomplete, triggers process-group cleanup, and preserves its evidence; it never
 permits truncation to a passing subset or another attempt. These bounds leave
 room for final collection instead of relying on job cancellation.
+Build commands additionally require their complete timeout to fit a conservative
+40-minute internal preparation budget. Every command also respects the absolute
+110-minute task-work deadline, leaving ten minutes inside the job ceiling for
+separate cleanup and evidence upload.
 
 Inside that step, a fixed 3,300-second resource budget reserves each command's
 full existing timeout plus ten seconds for cleanup before launch. The fixed
@@ -61,9 +77,11 @@ Consumers are archived before the installed probe, then checked for changes.
 The always-run collector also archives each consumer's final tree, including
 partial installations and failed probes, separately from the admitted snapshot.
 
-The previous shared-runner macOS result remains inconclusive. A passing result
+The previous shared-runner macOS result remains inconclusive, and three-CPU
+run 36633270293 remains an environmental rejection with no timing processes.
+A passing result
 here applies only to these rebuilt artifacts, four workloads, and the admitted
-macOS 15 arm64 environment; it neither explains the earlier variability nor
+five-CPU macOS 15 arm64 VM/private-path environment; it neither explains the earlier variability nor
 qualifies PR #769 or another platform.
 
 Static qualification of the carrier uses `python3 -I selftest.py`, Python AST

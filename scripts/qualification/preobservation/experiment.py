@@ -10,7 +10,7 @@ import time
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import HERE, PACKET_HASHES, digest, read, require, reserve_budget, run, verify_packet, write
+from common import HERE, PACKET_HASHES, digest, private_layout, read, require, reserve_budget, run, task_deadline, verify_packet, write
 
 NAMES = ['remove-file', 'remove-empty-directory', 'move-existing-overwrite', 'remove-recursive']
 T95_DF11 = 1.795884818703669
@@ -110,6 +110,8 @@ def analyze_calibration(output):
 
 def verify_pins(evidence):
     verify_packet()
+    layout = private_layout()
+    require(read(evidence / 'layout.json') == {name: str(path) for name, path in layout.items()}, 'private layout changed')
     for file, expected in read(evidence / 'artifact-pins.json').items():
         require(digest(file) == expected, 'admitted artifact changed: ' + file)
 
@@ -138,8 +140,9 @@ def calibrate(evidence, config, deadline):
 
 
 def main(evidence):
-    deadline = time.monotonic() + 3300
+    deadline = min(time.monotonic() + 3300, task_deadline())
     write(evidence / 'resource-budget.json', dict(overallSeconds=3300, reserveForCleanupSeconds=10,
+          taskWorkDeadline=task_deadline(), taskWorkSeconds=6600,
           rule='Reserve each complete command timeout before launch; never shorten a child timeout or retry.'))
     verify_pins(evidence)
     require(read(evidence / 'build-complete.json')['allCommandGroupsTerminal'] is True, 'functional commands not terminal')
@@ -153,6 +156,7 @@ def main(evidence):
     verify_pins(evidence)
     require(calibration['controlsCleared'], 'baseline suitability failed; stage two was not launched')
     reserve_budget(deadline, 2700)
+    private_layout()
     environmental_admission(evidence / 'admission-qualification', admission['logicalCpus'], deadline)
     run(evidence, 'qualification', [sys.executable, '-I', HERE / 'stage2.py', 'run', evidence / 'config.json', evidence / 'qualification'], timeout=2700, deadline=deadline)
     verify_pins(evidence)
@@ -164,8 +168,8 @@ def main(evidence):
             identity = [result['apiPath'], result['apiSha256'], result['distSha256'], result['native']['path'], result['cpu']]
             require(identity == calibration['baselineIdentity'], 'baseline changed between stages')
     write(evidence / 'outcome.json', dict(calibration='qualified', qualification=analysis['disposition'],
-          scope='Fresh rebuilt artifacts on the admitted macOS 15 arm64 image and four frozen workloads only.',
-          previousSharedRunnerResult='inconclusive; unchanged'))
+          scope='Integrated artifacts and four frozen workloads on the admitted five-CPU macOS 15 arm64 VM/private-path environment only.',
+          previousSharedRunnerResult='inconclusive; unchanged', previousThreeCpuTrial='admission failed; no timing launched; unchanged'))
     require(analysis['disposition'] == 'qualified', 'stage two did not qualify; no further campaign')
 
 
