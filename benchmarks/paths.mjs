@@ -1,3 +1,4 @@
+import { ROOT_STAT_OBSERVATION_PREFIX, registerRootStatObservationOwner } from "./root-stat-observation-owner.mjs";
 import { SYNCHRONOUS_GUARD_PREFIX, registerSynchronousGuardOwner } from "./absolute-directory-synchronous-guard-owner.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -18,6 +19,11 @@ export async function registerPaths({
   PermissionCommandError,
   onCleanup,
 }) {
+  if (args.filter === ROOT_STAT_OBSERVATION_PREFIX) {
+    assert.equal(args.mode, "off");
+    assert.equal(process.env.NODE_ENV, "test");
+    await registerRootStatObservationOwner({ api: a, workspace: w, register: add, onCleanup });
+  }
   if (args.filter === SYNCHRONOUS_GUARD_PREFIX) {
     assert.equal(args.mode, "off");
     registerSynchronousGuardOwner({ api: a, workspace: w, register: add, onCleanup });
