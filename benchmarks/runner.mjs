@@ -37,6 +37,7 @@ import {
   parseMeasuredSourceArguments,
 } from "./measured-distribution.mjs";
 import { finalizeBenchmarkReport, finishBenchmarkInvocation } from "./runner-cleanup.mjs";
+import { prepareWindowsComparisonStudy } from "./windows-comparison-spelling.mjs";
 
 const args = { iterations: 100, samples: 5, warmup: 5, mode: "off", "copy-shape": "mixed", "copy-files": 64, "copy-file-bytes": 4096 };
 for (let i = 2; i < process.argv.length; i++) {
@@ -45,6 +46,7 @@ for (let i = 2; i < process.argv.length; i++) {
   const allowed = [
     "iterations", "samples", "warmup", "mode", "json", "filter", "dist",
     "copy-shape", "copy-files", "copy-file-bytes", "copy-concurrency",
+    "windows-comparison-fixture",
     ...MEASURED_SOURCE_ARGUMENT_NAMES,
   ];
   if (!allowed.includes(key)) throw new Error(`Unknown argument: ${key}`);
@@ -84,6 +86,7 @@ for (const name of fs.readdirSync(import.meta.dirname).filter((name) => name.end
 }
 for (const name of ["package.json", "pnpm-lock.yaml"]) harnessHash.update(fs.readFileSync(path.join(packageRoot, name)));
 const harnessDigest = harnessHash.digest("hex");
+const windowsComparison = prepareWindowsComparisonStudy({ args, dist, packageRoot, manifest, measuredSource });
 const api = {};
 const exportsByName = new Map();
 for (const [subpath, target] of Object.entries(manifest.exports)) {
@@ -164,6 +167,7 @@ try {
   await registerWatch(context);
   registerSyncStoreDirectoryModes(context);
   const guest = registerGuest(context);
+  await windowsComparison?.register(context);
   const covered = new Set(cases.flatMap((c) => c.covers));
   const required = [...exportsByName.keys(), ...[...contracts].flatMap(([type, keys]) => keys.map((key) => `${type}.${key}`))];
   const missing = required.filter((name) => !covered.has(name) && !exclusions.has(name));
@@ -183,13 +187,14 @@ try {
     }
     const iterations = Math.max(1, Math.floor(args.iterations / (c.divisor ?? 1))) *
       (c.sync && !c.before && !c.after ? (c.batch ?? 1) : 1);
-    const once = async (timed) => {
+    const once = async (timed, sample, iteration) => {
       const input = await c.before?.();
       let output;
       let elapsed;
+      let start;
       const invocationFailures = [];
       try {
-        const start = performance.now();
+        start = performance.now();
         let rejected = false;
         try {
           output = c.sync ? c.run(input) : await c.run(input);
@@ -197,24 +202,36 @@ try {
           if (!c.expectError) throw error;
           output = error;
           rejected = true;
+        } finally {
+          elapsed = performance.now() - start;
         }
-        elapsed = performance.now() - start;
         if (c.expectError && !rejected) throw new Error(`${c.name} unexpectedly succeeded`);
         if (!timed) c.verify?.(output);
       } catch (error) {
         invocationFailures.push(error);
       }
-      await finishBenchmarkInvocation(
-        invocationFailures,
-        () => c.after?.(output, input),
-        `${c.name} invocation and cleanup failed`,
-      );
+      try {
+        await finishBenchmarkInvocation(
+          invocationFailures,
+          () => c.after?.(output, input),
+          `${c.name} invocation and cleanup failed`,
+        );
+      } finally {
+        if (timed) windowsComparison?.recordTiming({
+          name: c.name, sample, iteration, start, elapsed, failed: invocationFailures.length > 0,
+        });
+      }
       return elapsed;
     };
     const samplesUs = [];
-    for (let i = 0; i < args.warmup; i++) await once(false);
+    const routeWitness = await c.witness?.();
+    for (let i = 0; i < args.warmup; i++) {
+      await once(false);
+      windowsComparison?.recordPhase(c.name, "warmup", i);
+    }
     // Always run one checked call, including --warmup 0.
     await once(false);
+    windowsComparison?.recordPhase(c.name, "checked");
     for (let sample = 0; sample < args.samples; sample++) {
       let elapsed = 0;
       if (c.sync && !c.before && !c.after && !c.expectError) {
@@ -222,9 +239,10 @@ try {
         for (let i = 0; i < iterations; i++) c.run();
         elapsed = performance.now() - start;
       } else {
-        for (let i = 0; i < iterations; i++) elapsed += await once(true);
+        for (let i = 0; i < iterations; i++) elapsed += await once(true, sample, i);
       }
       samplesUs.push(elapsed * 1000 / iterations);
+      windowsComparison?.recordSample(c.name, sample, elapsed, samplesUs.at(-1));
     }
     const sorted = [...samplesUs].sort((a, b) => a - b);
     const medianUs = (sorted[Math.floor((sorted.length - 1) / 2)] + sorted[Math.floor(sorted.length / 2)]) / 2;
@@ -238,6 +256,7 @@ try {
       workloadSemantics: c.workloadSemantics,
       workloadDetails: c.workloadDetails,
       fixturePlacement: c.fixturePlacement,
+      ...(routeWitness ? { routeWitness } : {}),
     };
     results.push(result);
     process.stderr.write(`${c.name}: ${medianUs.toFixed(2)} us/call\n`);
@@ -250,6 +269,7 @@ try {
       nativeHash,
       distHash,
       measuredDistribution,
+      ...(windowsComparison ? { windowsComparison: windowsComparison.metadata } : {}),
       guest,
       sampleSemantics: SAMPLE_SEMANTICS,
       harnessRevision: execFileSync("git", ["rev-parse", "HEAD"], {
@@ -287,6 +307,7 @@ await finalizeBenchmarkReport({
     validateProbeTreeSuccessReport(completedReport, args.filter, args.iterations);
     validateCopyTreeSuccessReport(completedReport, args.filter, args.iterations);
     validateWindowsOwnerCaughtFailureReport(completedReport, args.filter, args.iterations);
+    windowsComparison?.validate(completedReport);
   },
   cleanup,
   cleanups,
@@ -294,4 +315,5 @@ await finalizeBenchmarkReport({
   reportPath: args.json ? path.resolve(args.json) : undefined,
   report: completedReport,
 });
+windowsComparison?.complete();
 process.stdout.write(completionMessage);

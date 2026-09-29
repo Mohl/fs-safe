@@ -192,6 +192,7 @@ root normalization remains platform-specific. Internal drive-component scan
 timings describe validation cost rather than complete Root I/O latency.
 Windows Root-path rows separately measure exact-prefix admission, whose repair
 adds no filesystem observations, and alternate-casing identity admission.
+
 Resumed fixtures are first claimed outside timing to expose retry durability costs.
 Single and batch migration cases include callback execution and durable replacement,
 then verify the returned entry and the published processing file outside timing.
@@ -548,3 +549,105 @@ are included in row names. Contents and directory listings are checked outside
 timing. On Windows, `TEMP`/`TMP` select the ordinary fixture volume; the
 sidecar-path exception above uses the cwd drive only when relative path semantics
 require it. On POSIX use `TMPDIR`.
+
+### Windows comparison spelling study
+
+The exact `windows-comparison-spelling` filter adds six complete public
+`Root.readAbsolute` rows: exact prefix, extended drive namespace, same-object
+ASCII case fold, namespace plus case fold, distinct case-sensitive sibling
+refusal, and adjacent-prefix refusal. It requires real Windows x64 Node
+`v24.21.0`, native mode `off`, an installed public package selected with `--dist`,
+the existing complete measured-source argument set, and exactly
+`--iterations 20 --samples 5 --warmup 10`. Supply
+`--windows-comparison-fixture C:\proof\fixture-input.json` and a new `--json`
+report path. These rows have no skips or synthetic platform substitutions.
+The module pins the study's baseline/candidate commit and tree identities.
+
+One preparation owner creates a private shared NTFS fixture outside all four
+consumers and the harness checkout, then cleans it only after all children
+settle. The harness only reads and checks this fixture. Its input has exactly
+the following schema; replace placeholder identity/digest strings with actual
+positive decimal bigint identities and lowercase SHA-256 digests:
+
+```json
+{
+  "schemaVersion": 1,
+  "study": "windows-comparison-spelling-v1",
+  "node": {
+    "version": "v24.21.0", "platform": "win32", "arch": "x64",
+    "executableSha256": "<64 lowercase hex characters>"
+  },
+  "directories": {
+    "tree": {"path": "C:\\proof\\fixture", "dev": "<positive decimal>", "ino": "<positive decimal>"},
+    "ordinaryRoot": {"path": "C:\\proof\\fixture\\Root", "dev": "<positive decimal>", "ino": "<positive decimal>"},
+    "adjacentRoot": {"path": "C:\\proof\\fixture\\Root-other", "dev": "<positive decimal>", "ino": "<positive decimal>"},
+    "sensitiveParent": {"path": "C:\\proof\\fixture\\sensitive", "dev": "<positive decimal>", "ino": "<positive decimal>"},
+    "sensitiveRoot": {"path": "C:\\proof\\fixture\\sensitive\\Root", "dev": "<positive decimal>", "ino": "<positive decimal>"},
+    "sensitiveSibling": {"path": "C:\\proof\\fixture\\sensitive\\root", "dev": "<positive decimal>", "ino": "<positive decimal>"}
+  },
+  "files": {
+    "ordinaryRoot": {"dev": "<positive decimal>", "ino": "<positive decimal>", "sha256": "<64 lowercase hex characters>"},
+    "adjacentRoot": {"dev": "<positive decimal>", "ino": "<positive decimal>", "sha256": "<64 lowercase hex characters>"},
+    "sensitiveRoot": {"dev": "<positive decimal>", "ino": "<positive decimal>", "sha256": "<64 lowercase hex characters>"},
+    "sensitiveSibling": {"dev": "<positive decimal>", "ino": "<positive decimal>", "sha256": "<64 lowercase hex characters>"}
+  },
+  "admission": {"receiptPath": "C:\\proof\\fixture-admission.json", "sha256": "<64 lowercase hex characters>"}
+}
+```
+
+Every leaf directory contains exactly one regular single-link `payload.txt`.
+`ordinaryRoot` and `sensitiveRoot` contain
+`fs-safe Windows comparison payload\n`; `adjacentRoot` contains
+`fs-safe Windows adjacent sentinel\n`; `sensitiveSibling` contains
+`fs-safe Windows case-sensitive sibling sentinel\n` (UTF-8, LF, no BOM).
+All six directories and all four files have distinct identities. The ordinary
+root's lowercase alias must instead identify that same ordinary root and file.
+Paths use ordinary canonical drive spelling and backslashes. Shared fixture,
+input, receipt, report and journal paths must be separate from installed
+consumers and the harness checkout; evidence/output files are outside the tree.
+
+The hashed admission receipt contains `schemaVersion: 1`, the same `study`,
+`result: "pass"`, `filesystem: "NTFS"`, `privateWindowsAcl: true`,
+`ordinaryCaseSensitive: false`, `sensitiveCaseSensitive: true`, and `node`,
+`directories`, and `files` objects exactly equal to the input. It may include
+additional raw admission evidence. The preparation owner must actually verify
+ACLs and case flags and retain the proof; receipt booleans alone do not prove
+those properties. The harness checks Node executable bytes before product
+imports and rechecks canonical paths, bigint identities, layout and all bytes.
+Both constructed Roots must retain `rootDir === rootReal`.
+
+Each row performs a separate untimed witness before its ten warmups, one checked
+call, and five samples of twenty calls. The witness forwards the original
+`path.win32.normalize` and `fs.lstatSync` with the original receiver, arguments,
+return values and errors. It attributes events to the exact installed
+`dist/root-boundary.js` module in the captured stack and restores the original
+descriptors before any warmup. Exact prefixes must have no such events;
+other rows must show the real slow normalization. Case-fold observations must
+retain the exact supplied prefix (including `\\?\` when present) and actual
+bigint directory identity. Namespace-only and adjacent-prefix rows need no
+identity observation. Every read checks the complete expected bytes; refusals
+must be `FsSafeError` with `outside-workspace` and no cause. A forwarding loader
+observer requires zero addon load attempts from before public-package imports
+through runner cleanup.
+
+The runner retains its complete callable census and existing sample loops.
+`<report>.journal.jsonl` is created exclusively and records witness observations,
+warmup/check completion, every timed call's ordered start/elapsed pair, and the
+exact sequential sums used for sample means. Writes and result assertions are
+outside each timer; elapsed collection is in `finally`, including failed calls.
+A failed run keeps its journal. Abrupt process termination may leave its final
+in-flight call unrecorded and always makes the cell incomplete. A successful
+report requires all six rows, all 600 timed calls, unchanged fixtures and no
+addon loads. Partial journals never qualify for performance acceptance.
+
+The external owner freezes 24 balanced four-arm blocks (96 children), two
+independent installs per source, and the same observed logical CPU per child.
+Use median-of-five means and the predeclared 24 block log contrasts, sample SD
+denominator 23 and one-sided t value `1.7138715277470473`. Require every source
+upper bound and bidirectional same-source control upper bound to be at most
+`1.05`: six source and twelve control gates. The 180-second process cap,
+2700-second campaign cap and 60-second settlement reserve are owner-enforced.
+Compare the actual witness signatures across all A/B arms before accepting
+timing. No retries, exclusions, retuning or replacement campaign can earn a
+pass. This study makes no native-method, live UNC, request-tail or automatic
+speedup claim; functional/native compatibility has separate proof.
