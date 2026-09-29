@@ -9,7 +9,13 @@ import { __setFsSafeTestHooksForTest } from "../src/test-hooks.js";
 import { useRealTempDirs } from "./helpers/vitest.js";
 
 let native: NativeBinding | undefined;
-try { native = __loadBundledNativeForTest(); } catch { /* Dedicated native lanes build the addon. */ }
+try { native = __loadBundledNativeForTest(); }
+catch (error) { if (process.env.FS_SAFE_NATIVE_MODE === "require") throw error; }
+if (process.env.FS_SAFE_NATIVE_MODE === "require" && (
+  typeof native?.rootRemovalStat !== "function" ||
+  typeof native?.rootRemovalUnlink !== "function" ||
+  (process.platform !== "win32" && typeof native?.openRootRemovalDirectory !== "function")
+)) throw new Error("Native Root removal tests require the complete host removal binding");
 const { tempRoot } = useRealTempDirs();
 afterEach(() => {
   vi.restoreAllMocks();
