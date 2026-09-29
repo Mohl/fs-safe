@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "study": "root-exact-identity-domain-v2",
+  "state": "SOURCE_ONLY_READY_FOR_PARENT_REVIEW",
+  "launch": false,
+  "executionReady": false,
+  "performanceManifestSha256": "96bdc842c99f6de0479fe26f14b2f4d81586b8f9eb0179797a1f6f4f1f6f00de",
+  "files": {
+    "README.md": "1cc0da5fed730ddbe19db33c54162677caac3d3531b1ec27e56292df9f0c0290",
+    "SOURCE-VALIDATION.json": "e85f12fe5a1154ef891b22d4528ff360c13f5c8c023fce9dfa2607ceda0f19a2",
+    "acceptance-receipt.template.json": "ad823abfab738b2f76402c9e6023f5e3e4e90a1a30a10a6ef502342e528b8bcd",
+    "activation.template.json": "00a19447fdf010ee9aff35e1ea1c9b8ae1b745632f25b8697405ebdd69fe1c99",
+    "run-performance.py": "32323c9485b86e0e007407fcc15b2a7c09dfd56aab5d77747d86a19e014c302b",
+    "source-bindings.json": "0c0052dcc25212f3f6b02530a78b966c8a8986d85592080609c4bac47edefc00",
+    "support/bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
+    "support/settlement_control.py": "63338a93219e17187fe1db7dc1b5b2d4c0bdc88ad46c7328f58a89c428504ba6"
+  },
+  "revision": 2
+}

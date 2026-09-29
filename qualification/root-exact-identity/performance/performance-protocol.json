@@ -1,0 +1,1649 @@
+{
+  "schema": 1,
+  "study": "root-exact-identity-domain-v2",
+  "state": "DESIGN_FROZEN_SOURCE_ONLY_NOT_EXECUTED",
+  "launch": false,
+  "baseline": "ae83cc9a851f325a7e047baf4b8cc6402c613bb3",
+  "candidateCommit": "3488b411206b8031db5a122ec25fe1d6e3630a9e",
+  "harnessCommit": null,
+  "scope": "Linux x64 Node 24 ordinary real filesystem identities. No Windows, Bun, races, synthetic identity, invalid private context, cold startup, or individual-tail latency claim.",
+  "host": {
+    "provider": null,
+    "lease": null,
+    "instance": null,
+    "cpu": "lowest CPU in allowed affinity mask, freeze actual mask before functional qualification and timing",
+    "timingConcurrency": 1,
+    "filesystem": "private 0700 local filesystem; identical fixture names/depth for all arms",
+    "noConcurrentBuildsTestsOrMeasurements": true
+  },
+  "runtime": {
+    "major": 24,
+    "exactVersion": null,
+    "binarySha256": null,
+    "flags": [],
+    "NODE_ENV": "production",
+    "VITEST": null,
+    "testHooks": "absent throughout timed calls; selected consumer getter verifies absence outside timing, no setter calls",
+    "optionalDependencies": "one explicit freshly bound host-addon tarball installed in all four structurally identical consumers; native off must record zero dlopen/native calls; require must bind actual addon hash and observeDirectory calls",
+    "FS_SAFE_NATIVE_MODE": "matching each process mode, set before import"
+  },
+  "runner": {
+    "owner": "existing external benchmarks/runner.mjs before/run/after and cleanup settlement",
+    "filter": "Root/exact-identity-domain/",
+    "rowsByMode": {
+      "off": [
+        "root-construction",
+        "root-assert-resolve",
+        "stat-nested",
+        "list-names-16",
+        "walk-skip-16",
+        "walk-include-16"
+      ],
+      "require": [
+        "stat-nested",
+        "list-names-16"
+      ]
+    },
+    "warmup": 10,
+    "checked": 1,
+    "samples": 5,
+    "iterations": 20,
+    "blocks": 24,
+    "processes": 192,
+    "perProcessTimeoutSeconds": 180,
+    "campaignTimeoutSeconds": 2700,
+    "unit": "complete awaited public call; complete walk consumption included; setup, output/fixture verification, real-call witness and journals outside timer",
+    "rawJournalField": "rootExactIdentityEvent",
+    "preflightField": "rootExactIdentityPreflight",
+    "registrationWork": "existing runner registers unrelated fixtures before selected measurements; retain setup costs separately; no extra timed rows"
+  },
+  "fixture": {
+    "nested": "16 single-link ordinary files named entry-00.txt through entry-15.txt; stat uses nested/entry-00.txt",
+    "tree": "tree/a holds 8 files and tree/a/b holds 8 files; walk yields 16 files + 2 directories",
+    "payload": "synthetic stable byte buffers only",
+    "identities": "real dev/ino within safe integer range, nonzero ino; no wrappers change observations",
+    "verification": "exact captured dev/ino and contents/names after every invocation; advisory stat and complete sorted walk output outside timer"
+  },
+  "nativeRoutes": {
+    "root-construction": "resolveRootContext: JS realpath + exact fs.statSync",
+    "root-assert-resolve": "resolvePathInRoot \u2192 assertRootIdentityCurrentSync: JS exact lstat",
+    "stat-nested": "resolvePinnedObservedPathInRoot \u2192 getNativeDirectoryObservationBackend \u2192 ordinary receipt; require witness must call actual consumer binding.observeDirectory",
+    "list-names-16": "same selected directory observation route; require witness must call actual consumer binding.observeDirectory",
+    "walk-skip-16": "normal resolveRootPath/openRootDirectoryListing route; JS",
+    "walk-include-16": "changed root.observeRoot branch for child directories; JS observation, no directoryObserver passed"
+  },
+  "artifacts": {
+    "arms": [
+      "B0",
+      "B1",
+      "C0",
+      "C1"
+    ],
+    "sameSourceControls": "two isolated installs of one baseline tarball and two of one candidate tarball, not independent rebuilds",
+    "nativeAddon": "same exact source/provenance and binary digest in A/B, freshly verified before execution",
+    "beforeAfterInventories": true,
+    "publicContractGate": "fresh parent-accepted functional readiness, audit and terminal settlement; source/tree, installed package/root/native inventories; public declarations/exports identical; exact allowed internal d.ts changes bound by fresh functional owner inspection, not forced full declaration equality"
+  },
+  "statistics": {
+    "center": "median of 5 sample means per arm/block/row",
+    "sourceLogRatio": "(log(C0)+log(C1)-log(B0)-log(B1))/2",
+    "controls": [
+      "log(B1)-log(B0)",
+      "log(C1)-log(C0)"
+    ],
+    "upperSource": "exp(mean + 1.7138715277470473 * sample_sd / sqrt(24))",
+    "upperControl": "exp(abs(mean) + 1.7138715277470473 * sample_sd / sqrt(24))",
+    "bound": 1.1,
+    "acceptance": "all 8 source and all 16 bidirectional control bounds <= 1.10",
+    "meaning": "one-sided per-row bounds, not simultaneous familywise or equivalence bounds",
+    "noRetriesExclusionsOrRetuning": true,
+    "failure": "incomplete/HOLD on execution, witness, validation, timeout or functional failure; complete/HOLD on evaluated control or regression failure; retain all partial evidence"
+  },
+  "counts": {
+    "reports": 192,
+    "rowModeCells": 8,
+    "timedCalls": 76800,
+    "warmups": 7680,
+    "checkedCalls": 768,
+    "witnessCalls": 768,
+    "sampleMeans": 3840
+  },
+  "schedule": [
+    {
+      "ordinal": 1,
+      "block": 1,
+      "mode": "off",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-01-off-position-1-B0.json"
+    },
+    {
+      "ordinal": 2,
+      "block": 1,
+      "mode": "off",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-01-off-position-2-C0.json"
+    },
+    {
+      "ordinal": 3,
+      "block": 1,
+      "mode": "off",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-01-off-position-3-C1.json"
+    },
+    {
+      "ordinal": 4,
+      "block": 1,
+      "mode": "off",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-01-off-position-4-B1.json"
+    },
+    {
+      "ordinal": 5,
+      "block": 1,
+      "mode": "require",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-01-require-position-1-B0.json"
+    },
+    {
+      "ordinal": 6,
+      "block": 1,
+      "mode": "require",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-01-require-position-2-C0.json"
+    },
+    {
+      "ordinal": 7,
+      "block": 1,
+      "mode": "require",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-01-require-position-3-C1.json"
+    },
+    {
+      "ordinal": 8,
+      "block": 1,
+      "mode": "require",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-01-require-position-4-B1.json"
+    },
+    {
+      "ordinal": 9,
+      "block": 2,
+      "mode": "require",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-02-require-position-1-C1.json"
+    },
+    {
+      "ordinal": 10,
+      "block": 2,
+      "mode": "require",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-02-require-position-2-B1.json"
+    },
+    {
+      "ordinal": 11,
+      "block": 2,
+      "mode": "require",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-02-require-position-3-B0.json"
+    },
+    {
+      "ordinal": 12,
+      "block": 2,
+      "mode": "require",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-02-require-position-4-C0.json"
+    },
+    {
+      "ordinal": 13,
+      "block": 2,
+      "mode": "off",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-02-off-position-1-C1.json"
+    },
+    {
+      "ordinal": 14,
+      "block": 2,
+      "mode": "off",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-02-off-position-2-B1.json"
+    },
+    {
+      "ordinal": 15,
+      "block": 2,
+      "mode": "off",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-02-off-position-3-B0.json"
+    },
+    {
+      "ordinal": 16,
+      "block": 2,
+      "mode": "off",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-02-off-position-4-C0.json"
+    },
+    {
+      "ordinal": 17,
+      "block": 3,
+      "mode": "off",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-03-off-position-1-B1.json"
+    },
+    {
+      "ordinal": 18,
+      "block": 3,
+      "mode": "off",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-03-off-position-2-C1.json"
+    },
+    {
+      "ordinal": 19,
+      "block": 3,
+      "mode": "off",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-03-off-position-3-C0.json"
+    },
+    {
+      "ordinal": 20,
+      "block": 3,
+      "mode": "off",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-03-off-position-4-B0.json"
+    },
+    {
+      "ordinal": 21,
+      "block": 3,
+      "mode": "require",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-03-require-position-1-B1.json"
+    },
+    {
+      "ordinal": 22,
+      "block": 3,
+      "mode": "require",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-03-require-position-2-C1.json"
+    },
+    {
+      "ordinal": 23,
+      "block": 3,
+      "mode": "require",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-03-require-position-3-C0.json"
+    },
+    {
+      "ordinal": 24,
+      "block": 3,
+      "mode": "require",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-03-require-position-4-B0.json"
+    },
+    {
+      "ordinal": 25,
+      "block": 4,
+      "mode": "require",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-04-require-position-1-C0.json"
+    },
+    {
+      "ordinal": 26,
+      "block": 4,
+      "mode": "require",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-04-require-position-2-B0.json"
+    },
+    {
+      "ordinal": 27,
+      "block": 4,
+      "mode": "require",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-04-require-position-3-B1.json"
+    },
+    {
+      "ordinal": 28,
+      "block": 4,
+      "mode": "require",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-04-require-position-4-C1.json"
+    },
+    {
+      "ordinal": 29,
+      "block": 4,
+      "mode": "off",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-04-off-position-1-C0.json"
+    },
+    {
+      "ordinal": 30,
+      "block": 4,
+      "mode": "off",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-04-off-position-2-B0.json"
+    },
+    {
+      "ordinal": 31,
+      "block": 4,
+      "mode": "off",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-04-off-position-3-B1.json"
+    },
+    {
+      "ordinal": 32,
+      "block": 4,
+      "mode": "off",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-04-off-position-4-C1.json"
+    },
+    {
+      "ordinal": 33,
+      "block": 5,
+      "mode": "off",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-05-off-position-1-B0.json"
+    },
+    {
+      "ordinal": 34,
+      "block": 5,
+      "mode": "off",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-05-off-position-2-C0.json"
+    },
+    {
+      "ordinal": 35,
+      "block": 5,
+      "mode": "off",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-05-off-position-3-C1.json"
+    },
+    {
+      "ordinal": 36,
+      "block": 5,
+      "mode": "off",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-05-off-position-4-B1.json"
+    },
+    {
+      "ordinal": 37,
+      "block": 5,
+      "mode": "require",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-05-require-position-1-B0.json"
+    },
+    {
+      "ordinal": 38,
+      "block": 5,
+      "mode": "require",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-05-require-position-2-C0.json"
+    },
+    {
+      "ordinal": 39,
+      "block": 5,
+      "mode": "require",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-05-require-position-3-C1.json"
+    },
+    {
+      "ordinal": 40,
+      "block": 5,
+      "mode": "require",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-05-require-position-4-B1.json"
+    },
+    {
+      "ordinal": 41,
+      "block": 6,
+      "mode": "require",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-06-require-position-1-C1.json"
+    },
+    {
+      "ordinal": 42,
+      "block": 6,
+      "mode": "require",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-06-require-position-2-B1.json"
+    },
+    {
+      "ordinal": 43,
+      "block": 6,
+      "mode": "require",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-06-require-position-3-B0.json"
+    },
+    {
+      "ordinal": 44,
+      "block": 6,
+      "mode": "require",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-06-require-position-4-C0.json"
+    },
+    {
+      "ordinal": 45,
+      "block": 6,
+      "mode": "off",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-06-off-position-1-C1.json"
+    },
+    {
+      "ordinal": 46,
+      "block": 6,
+      "mode": "off",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-06-off-position-2-B1.json"
+    },
+    {
+      "ordinal": 47,
+      "block": 6,
+      "mode": "off",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-06-off-position-3-B0.json"
+    },
+    {
+      "ordinal": 48,
+      "block": 6,
+      "mode": "off",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-06-off-position-4-C0.json"
+    },
+    {
+      "ordinal": 49,
+      "block": 7,
+      "mode": "off",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-07-off-position-1-B1.json"
+    },
+    {
+      "ordinal": 50,
+      "block": 7,
+      "mode": "off",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-07-off-position-2-C1.json"
+    },
+    {
+      "ordinal": 51,
+      "block": 7,
+      "mode": "off",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-07-off-position-3-C0.json"
+    },
+    {
+      "ordinal": 52,
+      "block": 7,
+      "mode": "off",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-07-off-position-4-B0.json"
+    },
+    {
+      "ordinal": 53,
+      "block": 7,
+      "mode": "require",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-07-require-position-1-B1.json"
+    },
+    {
+      "ordinal": 54,
+      "block": 7,
+      "mode": "require",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-07-require-position-2-C1.json"
+    },
+    {
+      "ordinal": 55,
+      "block": 7,
+      "mode": "require",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-07-require-position-3-C0.json"
+    },
+    {
+      "ordinal": 56,
+      "block": 7,
+      "mode": "require",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-07-require-position-4-B0.json"
+    },
+    {
+      "ordinal": 57,
+      "block": 8,
+      "mode": "require",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-08-require-position-1-C0.json"
+    },
+    {
+      "ordinal": 58,
+      "block": 8,
+      "mode": "require",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-08-require-position-2-B0.json"
+    },
+    {
+      "ordinal": 59,
+      "block": 8,
+      "mode": "require",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-08-require-position-3-B1.json"
+    },
+    {
+      "ordinal": 60,
+      "block": 8,
+      "mode": "require",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-08-require-position-4-C1.json"
+    },
+    {
+      "ordinal": 61,
+      "block": 8,
+      "mode": "off",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-08-off-position-1-C0.json"
+    },
+    {
+      "ordinal": 62,
+      "block": 8,
+      "mode": "off",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-08-off-position-2-B0.json"
+    },
+    {
+      "ordinal": 63,
+      "block": 8,
+      "mode": "off",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-08-off-position-3-B1.json"
+    },
+    {
+      "ordinal": 64,
+      "block": 8,
+      "mode": "off",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-08-off-position-4-C1.json"
+    },
+    {
+      "ordinal": 65,
+      "block": 9,
+      "mode": "off",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-09-off-position-1-B0.json"
+    },
+    {
+      "ordinal": 66,
+      "block": 9,
+      "mode": "off",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-09-off-position-2-C0.json"
+    },
+    {
+      "ordinal": 67,
+      "block": 9,
+      "mode": "off",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-09-off-position-3-C1.json"
+    },
+    {
+      "ordinal": 68,
+      "block": 9,
+      "mode": "off",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-09-off-position-4-B1.json"
+    },
+    {
+      "ordinal": 69,
+      "block": 9,
+      "mode": "require",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-09-require-position-1-B0.json"
+    },
+    {
+      "ordinal": 70,
+      "block": 9,
+      "mode": "require",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-09-require-position-2-C0.json"
+    },
+    {
+      "ordinal": 71,
+      "block": 9,
+      "mode": "require",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-09-require-position-3-C1.json"
+    },
+    {
+      "ordinal": 72,
+      "block": 9,
+      "mode": "require",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-09-require-position-4-B1.json"
+    },
+    {
+      "ordinal": 73,
+      "block": 10,
+      "mode": "require",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-10-require-position-1-C1.json"
+    },
+    {
+      "ordinal": 74,
+      "block": 10,
+      "mode": "require",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-10-require-position-2-B1.json"
+    },
+    {
+      "ordinal": 75,
+      "block": 10,
+      "mode": "require",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-10-require-position-3-B0.json"
+    },
+    {
+      "ordinal": 76,
+      "block": 10,
+      "mode": "require",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-10-require-position-4-C0.json"
+    },
+    {
+      "ordinal": 77,
+      "block": 10,
+      "mode": "off",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-10-off-position-1-C1.json"
+    },
+    {
+      "ordinal": 78,
+      "block": 10,
+      "mode": "off",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-10-off-position-2-B1.json"
+    },
+    {
+      "ordinal": 79,
+      "block": 10,
+      "mode": "off",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-10-off-position-3-B0.json"
+    },
+    {
+      "ordinal": 80,
+      "block": 10,
+      "mode": "off",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-10-off-position-4-C0.json"
+    },
+    {
+      "ordinal": 81,
+      "block": 11,
+      "mode": "off",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-11-off-position-1-B1.json"
+    },
+    {
+      "ordinal": 82,
+      "block": 11,
+      "mode": "off",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-11-off-position-2-C1.json"
+    },
+    {
+      "ordinal": 83,
+      "block": 11,
+      "mode": "off",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-11-off-position-3-C0.json"
+    },
+    {
+      "ordinal": 84,
+      "block": 11,
+      "mode": "off",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-11-off-position-4-B0.json"
+    },
+    {
+      "ordinal": 85,
+      "block": 11,
+      "mode": "require",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-11-require-position-1-B1.json"
+    },
+    {
+      "ordinal": 86,
+      "block": 11,
+      "mode": "require",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-11-require-position-2-C1.json"
+    },
+    {
+      "ordinal": 87,
+      "block": 11,
+      "mode": "require",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-11-require-position-3-C0.json"
+    },
+    {
+      "ordinal": 88,
+      "block": 11,
+      "mode": "require",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-11-require-position-4-B0.json"
+    },
+    {
+      "ordinal": 89,
+      "block": 12,
+      "mode": "require",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-12-require-position-1-C0.json"
+    },
+    {
+      "ordinal": 90,
+      "block": 12,
+      "mode": "require",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-12-require-position-2-B0.json"
+    },
+    {
+      "ordinal": 91,
+      "block": 12,
+      "mode": "require",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-12-require-position-3-B1.json"
+    },
+    {
+      "ordinal": 92,
+      "block": 12,
+      "mode": "require",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-12-require-position-4-C1.json"
+    },
+    {
+      "ordinal": 93,
+      "block": 12,
+      "mode": "off",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-12-off-position-1-C0.json"
+    },
+    {
+      "ordinal": 94,
+      "block": 12,
+      "mode": "off",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-12-off-position-2-B0.json"
+    },
+    {
+      "ordinal": 95,
+      "block": 12,
+      "mode": "off",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-12-off-position-3-B1.json"
+    },
+    {
+      "ordinal": 96,
+      "block": 12,
+      "mode": "off",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-12-off-position-4-C1.json"
+    },
+    {
+      "ordinal": 97,
+      "block": 13,
+      "mode": "off",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-13-off-position-1-B0.json"
+    },
+    {
+      "ordinal": 98,
+      "block": 13,
+      "mode": "off",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-13-off-position-2-C0.json"
+    },
+    {
+      "ordinal": 99,
+      "block": 13,
+      "mode": "off",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-13-off-position-3-C1.json"
+    },
+    {
+      "ordinal": 100,
+      "block": 13,
+      "mode": "off",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-13-off-position-4-B1.json"
+    },
+    {
+      "ordinal": 101,
+      "block": 13,
+      "mode": "require",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-13-require-position-1-B0.json"
+    },
+    {
+      "ordinal": 102,
+      "block": 13,
+      "mode": "require",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-13-require-position-2-C0.json"
+    },
+    {
+      "ordinal": 103,
+      "block": 13,
+      "mode": "require",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-13-require-position-3-C1.json"
+    },
+    {
+      "ordinal": 104,
+      "block": 13,
+      "mode": "require",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-13-require-position-4-B1.json"
+    },
+    {
+      "ordinal": 105,
+      "block": 14,
+      "mode": "require",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-14-require-position-1-C1.json"
+    },
+    {
+      "ordinal": 106,
+      "block": 14,
+      "mode": "require",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-14-require-position-2-B1.json"
+    },
+    {
+      "ordinal": 107,
+      "block": 14,
+      "mode": "require",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-14-require-position-3-B0.json"
+    },
+    {
+      "ordinal": 108,
+      "block": 14,
+      "mode": "require",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-14-require-position-4-C0.json"
+    },
+    {
+      "ordinal": 109,
+      "block": 14,
+      "mode": "off",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-14-off-position-1-C1.json"
+    },
+    {
+      "ordinal": 110,
+      "block": 14,
+      "mode": "off",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-14-off-position-2-B1.json"
+    },
+    {
+      "ordinal": 111,
+      "block": 14,
+      "mode": "off",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-14-off-position-3-B0.json"
+    },
+    {
+      "ordinal": 112,
+      "block": 14,
+      "mode": "off",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-14-off-position-4-C0.json"
+    },
+    {
+      "ordinal": 113,
+      "block": 15,
+      "mode": "off",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-15-off-position-1-B1.json"
+    },
+    {
+      "ordinal": 114,
+      "block": 15,
+      "mode": "off",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-15-off-position-2-C1.json"
+    },
+    {
+      "ordinal": 115,
+      "block": 15,
+      "mode": "off",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-15-off-position-3-C0.json"
+    },
+    {
+      "ordinal": 116,
+      "block": 15,
+      "mode": "off",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-15-off-position-4-B0.json"
+    },
+    {
+      "ordinal": 117,
+      "block": 15,
+      "mode": "require",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-15-require-position-1-B1.json"
+    },
+    {
+      "ordinal": 118,
+      "block": 15,
+      "mode": "require",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-15-require-position-2-C1.json"
+    },
+    {
+      "ordinal": 119,
+      "block": 15,
+      "mode": "require",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-15-require-position-3-C0.json"
+    },
+    {
+      "ordinal": 120,
+      "block": 15,
+      "mode": "require",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-15-require-position-4-B0.json"
+    },
+    {
+      "ordinal": 121,
+      "block": 16,
+      "mode": "require",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-16-require-position-1-C0.json"
+    },
+    {
+      "ordinal": 122,
+      "block": 16,
+      "mode": "require",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-16-require-position-2-B0.json"
+    },
+    {
+      "ordinal": 123,
+      "block": 16,
+      "mode": "require",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-16-require-position-3-B1.json"
+    },
+    {
+      "ordinal": 124,
+      "block": 16,
+      "mode": "require",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-16-require-position-4-C1.json"
+    },
+    {
+      "ordinal": 125,
+      "block": 16,
+      "mode": "off",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-16-off-position-1-C0.json"
+    },
+    {
+      "ordinal": 126,
+      "block": 16,
+      "mode": "off",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-16-off-position-2-B0.json"
+    },
+    {
+      "ordinal": 127,
+      "block": 16,
+      "mode": "off",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-16-off-position-3-B1.json"
+    },
+    {
+      "ordinal": 128,
+      "block": 16,
+      "mode": "off",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-16-off-position-4-C1.json"
+    },
+    {
+      "ordinal": 129,
+      "block": 17,
+      "mode": "off",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-17-off-position-1-B0.json"
+    },
+    {
+      "ordinal": 130,
+      "block": 17,
+      "mode": "off",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-17-off-position-2-C0.json"
+    },
+    {
+      "ordinal": 131,
+      "block": 17,
+      "mode": "off",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-17-off-position-3-C1.json"
+    },
+    {
+      "ordinal": 132,
+      "block": 17,
+      "mode": "off",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-17-off-position-4-B1.json"
+    },
+    {
+      "ordinal": 133,
+      "block": 17,
+      "mode": "require",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-17-require-position-1-B0.json"
+    },
+    {
+      "ordinal": 134,
+      "block": 17,
+      "mode": "require",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-17-require-position-2-C0.json"
+    },
+    {
+      "ordinal": 135,
+      "block": 17,
+      "mode": "require",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-17-require-position-3-C1.json"
+    },
+    {
+      "ordinal": 136,
+      "block": 17,
+      "mode": "require",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-17-require-position-4-B1.json"
+    },
+    {
+      "ordinal": 137,
+      "block": 18,
+      "mode": "require",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-18-require-position-1-C1.json"
+    },
+    {
+      "ordinal": 138,
+      "block": 18,
+      "mode": "require",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-18-require-position-2-B1.json"
+    },
+    {
+      "ordinal": 139,
+      "block": 18,
+      "mode": "require",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-18-require-position-3-B0.json"
+    },
+    {
+      "ordinal": 140,
+      "block": 18,
+      "mode": "require",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-18-require-position-4-C0.json"
+    },
+    {
+      "ordinal": 141,
+      "block": 18,
+      "mode": "off",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-18-off-position-1-C1.json"
+    },
+    {
+      "ordinal": 142,
+      "block": 18,
+      "mode": "off",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-18-off-position-2-B1.json"
+    },
+    {
+      "ordinal": 143,
+      "block": 18,
+      "mode": "off",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-18-off-position-3-B0.json"
+    },
+    {
+      "ordinal": 144,
+      "block": 18,
+      "mode": "off",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-18-off-position-4-C0.json"
+    },
+    {
+      "ordinal": 145,
+      "block": 19,
+      "mode": "off",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-19-off-position-1-B1.json"
+    },
+    {
+      "ordinal": 146,
+      "block": 19,
+      "mode": "off",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-19-off-position-2-C1.json"
+    },
+    {
+      "ordinal": 147,
+      "block": 19,
+      "mode": "off",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-19-off-position-3-C0.json"
+    },
+    {
+      "ordinal": 148,
+      "block": 19,
+      "mode": "off",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-19-off-position-4-B0.json"
+    },
+    {
+      "ordinal": 149,
+      "block": 19,
+      "mode": "require",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-19-require-position-1-B1.json"
+    },
+    {
+      "ordinal": 150,
+      "block": 19,
+      "mode": "require",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-19-require-position-2-C1.json"
+    },
+    {
+      "ordinal": 151,
+      "block": 19,
+      "mode": "require",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-19-require-position-3-C0.json"
+    },
+    {
+      "ordinal": 152,
+      "block": 19,
+      "mode": "require",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-19-require-position-4-B0.json"
+    },
+    {
+      "ordinal": 153,
+      "block": 20,
+      "mode": "require",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-20-require-position-1-C0.json"
+    },
+    {
+      "ordinal": 154,
+      "block": 20,
+      "mode": "require",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-20-require-position-2-B0.json"
+    },
+    {
+      "ordinal": 155,
+      "block": 20,
+      "mode": "require",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-20-require-position-3-B1.json"
+    },
+    {
+      "ordinal": 156,
+      "block": 20,
+      "mode": "require",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-20-require-position-4-C1.json"
+    },
+    {
+      "ordinal": 157,
+      "block": 20,
+      "mode": "off",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-20-off-position-1-C0.json"
+    },
+    {
+      "ordinal": 158,
+      "block": 20,
+      "mode": "off",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-20-off-position-2-B0.json"
+    },
+    {
+      "ordinal": 159,
+      "block": 20,
+      "mode": "off",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-20-off-position-3-B1.json"
+    },
+    {
+      "ordinal": 160,
+      "block": 20,
+      "mode": "off",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-20-off-position-4-C1.json"
+    },
+    {
+      "ordinal": 161,
+      "block": 21,
+      "mode": "off",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-21-off-position-1-B0.json"
+    },
+    {
+      "ordinal": 162,
+      "block": 21,
+      "mode": "off",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-21-off-position-2-C0.json"
+    },
+    {
+      "ordinal": 163,
+      "block": 21,
+      "mode": "off",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-21-off-position-3-C1.json"
+    },
+    {
+      "ordinal": 164,
+      "block": 21,
+      "mode": "off",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-21-off-position-4-B1.json"
+    },
+    {
+      "ordinal": 165,
+      "block": 21,
+      "mode": "require",
+      "position": 1,
+      "arm": "B0",
+      "report": "block-21-require-position-1-B0.json"
+    },
+    {
+      "ordinal": 166,
+      "block": 21,
+      "mode": "require",
+      "position": 2,
+      "arm": "C0",
+      "report": "block-21-require-position-2-C0.json"
+    },
+    {
+      "ordinal": 167,
+      "block": 21,
+      "mode": "require",
+      "position": 3,
+      "arm": "C1",
+      "report": "block-21-require-position-3-C1.json"
+    },
+    {
+      "ordinal": 168,
+      "block": 21,
+      "mode": "require",
+      "position": 4,
+      "arm": "B1",
+      "report": "block-21-require-position-4-B1.json"
+    },
+    {
+      "ordinal": 169,
+      "block": 22,
+      "mode": "require",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-22-require-position-1-C1.json"
+    },
+    {
+      "ordinal": 170,
+      "block": 22,
+      "mode": "require",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-22-require-position-2-B1.json"
+    },
+    {
+      "ordinal": 171,
+      "block": 22,
+      "mode": "require",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-22-require-position-3-B0.json"
+    },
+    {
+      "ordinal": 172,
+      "block": 22,
+      "mode": "require",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-22-require-position-4-C0.json"
+    },
+    {
+      "ordinal": 173,
+      "block": 22,
+      "mode": "off",
+      "position": 1,
+      "arm": "C1",
+      "report": "block-22-off-position-1-C1.json"
+    },
+    {
+      "ordinal": 174,
+      "block": 22,
+      "mode": "off",
+      "position": 2,
+      "arm": "B1",
+      "report": "block-22-off-position-2-B1.json"
+    },
+    {
+      "ordinal": 175,
+      "block": 22,
+      "mode": "off",
+      "position": 3,
+      "arm": "B0",
+      "report": "block-22-off-position-3-B0.json"
+    },
+    {
+      "ordinal": 176,
+      "block": 22,
+      "mode": "off",
+      "position": 4,
+      "arm": "C0",
+      "report": "block-22-off-position-4-C0.json"
+    },
+    {
+      "ordinal": 177,
+      "block": 23,
+      "mode": "off",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-23-off-position-1-B1.json"
+    },
+    {
+      "ordinal": 178,
+      "block": 23,
+      "mode": "off",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-23-off-position-2-C1.json"
+    },
+    {
+      "ordinal": 179,
+      "block": 23,
+      "mode": "off",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-23-off-position-3-C0.json"
+    },
+    {
+      "ordinal": 180,
+      "block": 23,
+      "mode": "off",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-23-off-position-4-B0.json"
+    },
+    {
+      "ordinal": 181,
+      "block": 23,
+      "mode": "require",
+      "position": 1,
+      "arm": "B1",
+      "report": "block-23-require-position-1-B1.json"
+    },
+    {
+      "ordinal": 182,
+      "block": 23,
+      "mode": "require",
+      "position": 2,
+      "arm": "C1",
+      "report": "block-23-require-position-2-C1.json"
+    },
+    {
+      "ordinal": 183,
+      "block": 23,
+      "mode": "require",
+      "position": 3,
+      "arm": "C0",
+      "report": "block-23-require-position-3-C0.json"
+    },
+    {
+      "ordinal": 184,
+      "block": 23,
+      "mode": "require",
+      "position": 4,
+      "arm": "B0",
+      "report": "block-23-require-position-4-B0.json"
+    },
+    {
+      "ordinal": 185,
+      "block": 24,
+      "mode": "require",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-24-require-position-1-C0.json"
+    },
+    {
+      "ordinal": 186,
+      "block": 24,
+      "mode": "require",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-24-require-position-2-B0.json"
+    },
+    {
+      "ordinal": 187,
+      "block": 24,
+      "mode": "require",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-24-require-position-3-B1.json"
+    },
+    {
+      "ordinal": 188,
+      "block": 24,
+      "mode": "require",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-24-require-position-4-C1.json"
+    },
+    {
+      "ordinal": 189,
+      "block": 24,
+      "mode": "off",
+      "position": 1,
+      "arm": "C0",
+      "report": "block-24-off-position-1-C0.json"
+    },
+    {
+      "ordinal": 190,
+      "block": 24,
+      "mode": "off",
+      "position": 2,
+      "arm": "B0",
+      "report": "block-24-off-position-2-B0.json"
+    },
+    {
+      "ordinal": 191,
+      "block": 24,
+      "mode": "off",
+      "position": 3,
+      "arm": "B1",
+      "report": "block-24-off-position-3-B1.json"
+    },
+    {
+      "ordinal": 192,
+      "block": 24,
+      "mode": "off",
+      "position": 4,
+      "arm": "C1",
+      "report": "block-24-off-position-4-C1.json"
+    }
+  ]
+}

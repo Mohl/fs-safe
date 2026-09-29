@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "baseCommit": "7169e54ba659873004a2e5a7d7adec86756e8685",
+  "baseTree": "71e3dc54c1f1bfada48f80ed05c879d9bf2ac639",
+  "postimageCommit": null,
+  "postimageTree": null,
+  "files": {
+    "benchmarks/paths.mjs": {
+      "beforeSha256": "8d77f563527fa6f69b33035105837131030b6f3caab472d6992b09a0bf634a2c",
+      "afterSha256": "0a2478af7f268030503c288041c6bc012bff596051c913136f8fb2df9b47f285",
+      "beforeLines": 238,
+      "afterLines": 243
+    },
+    "benchmarks/runner.mjs": {
+      "beforeSha256": "94f67788776e410beb5bae248f4e637bd32a4f665f99d3c75bc10e1aa971d932",
+      "afterSha256": "992a40d6049e61659cea86dd162be7b83e7bab800cda88c7e98d1f7458990e3e",
+      "beforeLines": 304,
+      "afterLines": 325
+    },
+    "benchmarks/root-exact-identity-domain.mjs": {
+      "beforeSha256": null,
+      "afterSha256": "5835568b3e674cbc5a6edb73ab5e0677f099960736deb8fdd6d2e3f63b0b371c",
+      "beforeLines": 0,
+      "afterLines": 146
+    }
+  },
+  "productsEvaluated": false
+}

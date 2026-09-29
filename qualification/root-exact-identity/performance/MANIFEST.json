@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "state": "SOURCE_ONLY_READY_FOR_PARENT_REVIEW",
+  "launch": false,
+  "executionReady": false,
+  "study": "root-exact-identity-domain-v2",
+  "protocolSha256": "f4005736ad14612986b4f935937326b88e257ac5eb67da696d1c8fa3b485e7ba",
+  "productPins": {
+    "baseline": {
+      "commit": "ae83cc9a851f325a7e047baf4b8cc6402c613bb3",
+      "tree": "2090874a4b407ed90a28175f2eb7c2297f2f69a9"
+    },
+    "candidate": {
+      "commit": "3488b411206b8031db5a122ec25fe1d6e3630a9e",
+      "tree": "fbd58c12c921a0d4248d76bf108b4e2127220e46"
+    }
+  },
+  "harnessBase": {
+    "commit": "7169e54ba659873004a2e5a7d7adec86756e8685",
+    "tree": "71e3dc54c1f1bfada48f80ed05c879d9bf2ac639"
+  },
+  "harnessCandidate": {
+    "commit": null,
+    "tree": null
+  },
+  "files": {
+    "DESIGN.md": "b9e8e86200d1e6ffdf5893f5902e31baec769f3995cc5b98f2c13da9ce212ee2",
+    "HANDOFF.json": "2ae33939d0b8056c1b27591ea53d4ca90865a279cb890872b4e773d9e21d9cc8",
+    "README.md": "bba2bb0fd8c274580d4f4020540f4e0bc4dab9bfd5acfda8acb7b1fa0c4cb7d3",
+    "SOURCE-VALIDATION.json": "82125a7ab5b784a3aac322dd06a4868d0fb67c248af44f03c18a4cb639cf80e4",
+    "assess-performance.py": "6a1595ae6a1e5bbccf903ecf9c08133a0c434fa6fc19c41d7beb5911470577d1",
+    "bound-input.template.json": "9be15813118c1b015cdd87044cad3e73f70cde116f48d9cbc59774e125a2f005",
+    "changed-harness/benchmarks/paths.mjs": "0a2478af7f268030503c288041c6bc012bff596051c913136f8fb2df9b47f285",
+    "changed-harness/benchmarks/root-exact-identity-domain.mjs": "5835568b3e674cbc5a6edb73ab5e0677f099960736deb8fdd6d2e3f63b0b371c",
+    "changed-harness/benchmarks/runner.mjs": "992a40d6049e61659cea86dd162be7b83e7bab800cda88c7e98d1f7458990e3e",
+    "design-reuse.json": "0cb16d9ec066a1bff187820a1beee4181f8a587a1bb393a04bd4e78751c984bc",
+    "harness-files.json": "b4519dfc455d46d37c759a61e79b1892fe45197354859a79ccf99ffba58c9fe9",
+    "harness-intent.json": "52680b64c35203b73d96aaa196ef36461760175e070592996dac62649d68a3e8",
+    "harness.patch": "8c7ea7730cf2a431774e6c1c7113704b1af0cfa458c76282839b9644d7778005",
+    "performance-protocol.json": "f4005736ad14612986b4f935937326b88e257ac5eb67da696d1c8fa3b485e7ba",
+    "product-pins.json": "2343185667879a022107d2971b2270615b7472eb2a0674f98001dc3231e5c400",
+    "reference-harness/benchmarks/paths.mjs": "8d77f563527fa6f69b33035105837131030b6f3caab472d6992b09a0bf634a2c",
+    "reference-harness/benchmarks/runner.mjs": "94f67788776e410beb5bae248f4e637bd32a4f665f99d3c75bc10e1aa971d932"
+  },
+  "revision": 2,
+  "supersedesManifestSha256": "2a69ab3f160b452b6a71618022a6ea7b9f99a956a6125a4105076e134f1ebe2a"
+}

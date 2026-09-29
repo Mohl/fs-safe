@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "state": "SOURCE_ONLY_CHECKED",
+  "driver": "Python ast.parse only, no imports/evaluation",
+  "helpers": "AST parsed; hashes byte-identical to functional/bootstrap/harness",
+  "json": "all newly prepared JSON parsed",
+  "functionalV2": "all original manifest-listed hashes and manifest hash unchanged",
+  "performanceV2": "runner node --check, assessor AST, external git apply --check passed; v1 preserved; protocol/workload/schedule unchanged",
+  "executed": {
+    "product": false,
+    "driver": false,
+    "benchmark": false,
+    "assessor": false,
+    "tests": false,
+    "network": false,
+    "leases": false
+  },
+  "sourceOnlyRestrictionsPreserved": true
+}

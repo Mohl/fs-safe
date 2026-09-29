@@ -1,0 +1,146 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+
+export const ROOT_EXACT_IDENTITY_PREFIX = "Root/exact-identity-domain/";
+const PROTOCOL = "root-exact-identity-domain-v2";
+const SEMANTICS = "Complete awaited public call; walk fully consumed; fixture and output checks outside timer.";
+const MAX_SAFE = BigInt(Number.MAX_SAFE_INTEGER);
+const names = Array.from({ length: 16 }, (_, index) => `entry-${String(index).padStart(2, "0")}.txt`);
+const payload = Buffer.from("root exact identity fixture\n");
+const identity = stat => ({ dev: stat.dev, ino: stat.ino });
+
+export async function registerRootExactIdentityDomain({ api, workspace, register, args, binding }) {
+  assert.equal(process.platform, "linux");
+  assert.equal(process.arch, "x64");
+  assert.equal(Number(process.versions.node.split(".")[0]), 24);
+  assert.equal(process.env.NODE_ENV, "production");
+  assert.equal(process.env.VITEST, undefined);
+  assert.equal(api.getFsSafeTestHooks(), undefined);
+  assert(["off", "require"].includes(args.mode));
+  assert.equal(args.iterations, 20);
+  assert.equal(args.samples, 5);
+  assert.equal(args.warmup, 10);
+  if (args.mode === "require") assert.equal(typeof binding?.observeDirectory, "function");
+  else assert.equal(Boolean(binding), false);
+
+  const directory = path.join(workspace, "exact-identity-fixture");
+  fs.mkdirSync(directory, { mode: 0o700 });
+  for (const relative of ["nested", "tree", "tree/a", "tree/a/b"])
+    fs.mkdirSync(path.join(directory, relative), { mode: 0o700 });
+  const filePaths = [
+    ...names.map(name => `nested/${name}`),
+    ...names.slice(0, 8).map(name => `tree/a/${name}`),
+    ...names.slice(8).map(name => `tree/a/b/${name}`),
+  ];
+  for (const relative of filePaths) fs.writeFileSync(path.join(directory, relative), payload, { mode: 0o600, flag: "wx" });
+  const directoryPaths = ["", "nested", "tree", "tree/a", "tree/a/b"];
+  const snapshots = new Map([...directoryPaths, ...filePaths].map(relative => {
+    const stat = fs.lstatSync(path.join(directory, relative), { bigint: true });
+    assert(stat.dev >= 0n && stat.dev <= MAX_SAFE && stat.ino > 0n && stat.ino <= MAX_SAFE);
+    assert.equal(stat.isSymbolicLink(), false);
+    assert.equal(stat.isFile() ? stat.nlink : 1n, 1n);
+    return [relative, identity(stat)];
+  }));
+  const directoryNames = new Map(directoryPaths.map(relative => [relative, fs.readdirSync(path.join(directory, relative)).sort()]));
+  const verifyFixture = () => {
+    for (const [relative, expected] of snapshots) {
+      const filename = path.join(directory, relative);
+      const stat = fs.lstatSync(filename, { bigint: true });
+      assert.deepEqual(identity(stat), expected);
+      assert.equal(stat.isSymbolicLink(), false);
+      if (directoryNames.has(relative)) {
+        assert.equal(stat.isDirectory(), true);
+        assert.deepEqual(fs.readdirSync(filename).sort(), directoryNames.get(relative));
+      } else {
+        assert.equal(stat.isFile(), true);
+        assert.equal(stat.nlink, 1n);
+        assert.deepEqual(fs.readFileSync(filename), payload);
+      }
+    }
+  };
+  const root = await api.root(directory);
+  const targetRelative = "nested/entry-00.txt";
+  const target = path.join(directory, targetRelative);
+  const expectedStat = fs.lstatSync(target);
+  const verifyRoot = result => {
+    assert.equal(result.rootReal, directory);
+    assert.equal(result.rootDir, directory);
+    assert.equal(typeof result.resolve, "function");
+  };
+  const verifyStat = result => {
+    for (const key of ["dev", "ino", "mode", "nlink", "size", "uid", "gid", "mtimeMs"])
+      assert.equal(result[key], expectedStat[key], key);
+    assert.equal(result.isFile, true);
+    assert.equal(result.isDirectory, false);
+    assert.equal(result.isSymbolicLink, false);
+  };
+  const expectedWalk = [
+    { relativePath: "tree/a", kind: "directory" },
+    ...names.slice(0, 8).map(name => ({ relativePath: `tree/a/${name}`, kind: "file" })),
+    { relativePath: "tree/a/b", kind: "directory" },
+    ...names.slice(8).map(name => ({ relativePath: `tree/a/b/${name}`, kind: "file" })),
+  ].map(entry => ({ ...entry, size: fs.lstatSync(path.join(directory, entry.relativePath)).size }))
+    .sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+  const consume = async policy => {
+    const entries = [];
+    for await (const entry of root.walk("tree", { symlinkPolicy: policy })) entries.push(entry);
+    return entries;
+  };
+  const verifyWalk = result => assert.deepEqual(
+    [...result].sort((a, b) => a.relativePath.localeCompare(b.relativePath)), expectedWalk);
+  const selected = [
+    { id: "root-construction", run: () => api.root(directory), verify: verifyRoot },
+    { id: "root-assert-resolve", run: () => root.resolve(targetRelative), verify: value => assert.equal(value, target) },
+    { id: "stat-nested", run: () => root.stat(targetRelative), verify: verifyStat },
+    { id: "list-names-16", run: () => root.list("nested"), verify: value => assert.deepEqual([...value].sort(), names) },
+    { id: "walk-skip-16", run: () => consume("skip"), verify: verifyWalk },
+    { id: "walk-include-16", run: () => consume("include"), verify: verifyWalk },
+  ].filter(row => args.mode === "off" || ["stat-nested", "list-names-16"].includes(row.id));
+
+  // Observe genuine dispatch once, then restore all original descriptors before timing.
+  const routeWitnesses = [];
+  for (const row of selected) {
+    const events = [];
+    const originals = ["statSync", "lstatSync"].map(key => [fs, key, Object.getOwnPropertyDescriptor(fs, key)]);
+    if (binding) originals.push([binding, "observeDirectory", Object.getOwnPropertyDescriptor(binding, "observeDirectory")]);
+    for (const [, , descriptor] of originals) assert(descriptor && typeof descriptor.value === "function" && descriptor.writable);
+    let result;
+    try {
+      for (const [owner, key, descriptor] of originals) {
+        Object.defineProperty(owner, key, { ...descriptor, value: function (...values) {
+          const observed = Reflect.apply(descriptor.value, this, values);
+          const pathname = String(values[0]);
+          if (pathname === directory || pathname.startsWith(directory + path.sep)) {
+            events.push({ method: key, relative: path.relative(directory, pathname).split(path.sep).join("/"),
+              bigint: typeof observed.dev === "bigint" });
+          }
+          return observed;
+        } });
+      }
+      result = await row.run();
+    } finally {
+      for (const [owner, key, descriptor] of originals) Object.defineProperty(owner, key, descriptor);
+    }
+    row.verify(result);
+    verifyFixture();
+    const nativeCalls = events.filter(event => event.method === "observeDirectory").length;
+    assert.equal(nativeCalls > 0, args.mode === "require");
+    if (row.id === "root-construction")
+      assert(events.some(event => event.method === "statSync" && event.relative === "" && event.bigint));
+    if (row.id === "root-assert-resolve")
+      assert(events.some(event => event.method === "lstatSync" && event.relative === "" && event.bigint));
+    assert(events.length > 0);
+    routeWitnesses.push({ row: ROOT_EXACT_IDENTITY_PREFIX + row.id, mode: args.mode, nativeCalls, events });
+  }
+  fs.writeSync(2, JSON.stringify({ rootExactIdentityPreflight: true, protocol: PROTOCOL, mode: args.mode,
+    safeNumericIdentities: true, hooksAbsent: true, bindingPresent: Boolean(binding), routeWitnesses }) + "\n");
+  for (const row of selected) register(ROOT_EXACT_IDENTITY_PREFIX + row.id, row.run, {
+    covers: [],
+    before: () => assert.equal(api.getFsSafeTestHooks(), undefined),
+    verify: row.verify,
+    after: result => { row.verify(result); verifyFixture(); },
+    workloadSemantics: SEMANTICS,
+    workloadDetails: { protocol: PROTOCOL, workload: row.id, nativeMode: args.mode },
+  });
+}

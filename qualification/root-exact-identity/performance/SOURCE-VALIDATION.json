@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "state": "SOURCE_ONLY_CHECKED",
+  "javascript": "node --check on all three full postimages passed; parse only",
+  "python": "ast.parse of assessor passed; module not imported/evaluated",
+  "json": "all packet JSON parsed",
+  "patch": "git apply --check --directory=reference-harness harness.patch passed",
+  "hashes": "all three postimages match intent; protocol hash matches assessor and binding; committed candidate four source hashes match reviewed source",
+  "schedule": "192 explicit unique ordinal records; 76800 timed call slots; no schedule run",
+  "productCommandsExecuted": false,
+  "benchmarkExecuted": false,
+  "assessorExecuted": false,
+  "networkOrLeasesUsed": false,
+  "productCheckoutModified": false,
+  "subagentsStarted": false,
+  "recorderRevision": "v2 attempts precede all fallible filename conversion/read/check/forwarding; separate matched outcome records",
+  "v2Validation": "Revised runner node --check, assessor AST, all JSON and external patch applicability passed; v1 and functional v2 hashes verified unchanged."
+}

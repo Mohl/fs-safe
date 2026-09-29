@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "study": "root-exact-identity-domain-v2",
+  "executionReady": false,
+  "sources": {
+    "A": {
+      "commit": "ae83cc9a851f325a7e047baf4b8cc6402c613bb3",
+      "tree": "2090874a4b407ed90a28175f2eb7c2297f2f69a9"
+    },
+    "B": {
+      "commit": "3488b411206b8031db5a122ec25fe1d6e3630a9e",
+      "tree": "fbd58c12c921a0d4248d76bf108b4e2127220e46"
+    }
+  },
+  "productionFiles": [
+    "src/root-context.ts",
+    "src/root-impl.ts",
+    "src/root-observed-path.ts",
+    "src/root-walk.ts"
+  ],
+  "productionSha256": {
+    "A": {
+      "src/root-context.ts": "c68df66a28d997b9760f3ab99577a48d24725479e143b681d4828d1371f7f70f",
+      "src/root-impl.ts": "65d4fb6926cd653ceb6d32d9760db60872b5740650ecd1ea469f9228d02058c6",
+      "src/root-observed-path.ts": "37e548566bb7aa88b0e3b468f37361ebe05d15c65edda6d78252cc3217446df4",
+      "src/root-walk.ts": "47a5e363ffae74e4342f6f297349511c2b0c3021785feb9cde977b5cf6b7d2bc"
+    },
+    "B": {
+      "src/root-context.ts": "f1bbef4d3a3a99217e1f6e1ab26c2434b292cd27fbc81702d2a74c31b47efeed",
+      "src/root-impl.ts": "40670e40de1158871f18f8e61306bfd5445d5abc92bd5efbdc86671c7a0cca51",
+      "src/root-observed-path.ts": "a1fa2b0c76cc00fa9e2dfef6c9518d2f868df536179a101a7bf7fb582e792417",
+      "src/root-walk.ts": "6f1ac36f5d6fabdd4b199ece7cd5196246e22a8069d4fdd444102cfba56ecb1b"
+    }
+  },
+  "commonSuites": {
+    "test/root-context-identity.test.ts": "82ba096323083135a4587a05dd2bae3ea8ca6348bb41779b170b6bb0926a1885",
+    "test/root-context-owner.test.ts": "fca95d534ada4cedaecb75a0e0d050e0e1aa2a957cd7c03a0d483b3de028e453",
+    "test/root-stat-list-observation.test.ts": "7e40dd556a542d636c8850675792fd783c9baf2921849fa2b0107033aeabf654",
+    "test/root-walk-include.test.ts": "a34173d8fe6a5adb0405d221405ffb77a9ddbb63cbc68efbad52163723582fab"
+  },
+  "regression": {
+    "path": "test/root-exact-identity.test.ts",
+    "sha256": "7137255c71be2c319f1239c31374ff96dff6592825f410ce4dd8d64530317bc8",
+    "baselineExpectedFailures": [
+      "refuses undefined retained identity before reobserving the root",
+      "refuses null retained identity before reobserving the root",
+      "refuses primitive retained identity before reobserving the root",
+      "refuses empty retained identity before reobserving the root",
+      "refuses numeric retained identity before reobserving the root",
+      "refuses numeric device retained identity before reobserving the root",
+      "refuses numeric inode retained identity before reobserving the root",
+      "refuses missing inode retained identity before reobserving the root",
+      "rejects a numeric device before reading the retained inode"
+    ],
+    "baselineExpectedPasses": [
+      "preserves dev getter failure ownership before filesystem access",
+      "preserves ino getter failure ownership before filesystem access",
+      "keeps high-bit root identities exact across metadata reads and a replacement"
+    ],
+    "candidateExpectedPasses": [
+      "refuses undefined retained identity before reobserving the root",
+      "refuses null retained identity before reobserving the root",
+      "refuses primitive retained identity before reobserving the root",
+      "refuses empty retained identity before reobserving the root",
+      "refuses numeric retained identity before reobserving the root",
+      "refuses numeric device retained identity before reobserving the root",
+      "refuses numeric inode retained identity before reobserving the root",
+      "refuses missing inode retained identity before reobserving the root",
+      "rejects a numeric device before reading the retained inode",
+      "preserves dev getter failure ownership before filesystem access",
+      "preserves ino getter failure ownership before filesystem access",
+      "keeps high-bit root identities exact across metadata reads and a replacement"
+    ]
+  },
+  "nativeCommonInputs": {
+    "Cargo.lock": "f500612e8b23c7e8f28b01079d375feaef558f28cde8425d3380603e6ce0aa75",
+    "Cargo.toml": "45da7fd8b2e8934b4354eeb9c89e9b27b24fb9a911f1d1ff482039640b19ff2d",
+    "archive-core/Cargo.toml": "bb1a4d24da1f4c137fa56a119d0c68eef2ac050729cb03bd33a3ac29d0793093",
+    "archive-core/src/lib.rs": "a2e0ecdfcfad051329fb12e0ec596580cb51c23b6a67da478ecf382bbb3584da",
+    "archive-core/src/tar_meter.rs": "db51628f1adf6224eca10c2277eb57eaa3797c58f0f33889035504878d7f53ae",
+    "archive-core/src/tar_meter_tests.rs": "f6577c164d668937f52d336a2ca4ed9f79081a7d79320012904e70845a6db3a6",
+    "archive-core/src/tar_mode.rs": "6505ac7bc58961353d540ee0e4d78281747fd566c892f0818ccbd90aeb60064b",
+    "archive-core/src/tar_path.rs": "7a5d2780b577c81dfe0fdc92c79f3543f1962a290ae0f4333f01ebd04cf8f7d7",
+    "archive-core/src/tar_pax.rs": "bd1783e7c66c01b3b314b566bc503b3580ec625089095caab6051171d6eace77",
+    "archive-core/src/tar_pax_admission_tests.rs": "186dfff9f191d35686181a9e01f5d7ebb240421a5f651ab3f4be5c95c6aeb69f",
+    "archive-core/src/tar_pax_decimal_tests.rs": "7a92ae118490847e40b0522a5794ed81e93a96dd666e4181af54f610168cbac8",
+    "archive-wasm/Cargo.toml": "800dad7b11f76a3d36b232ffb5b8f983dd40187b58269b9ea196eddea2cb1a2b",
+    "archive-wasm/examples/archive-codec-fixtures.rs": "bfb58d30f9a01ec363ae6bf1abef62bbb32ef4c428d7f2a3bab5e4fd95257af4",
+    "archive-wasm/src/allocation.rs": "2cbd1beabcb2aa28b0d82c4338e7e0a95646b5a4dd77efb5f8286e8b21745145",
+    "archive-wasm/src/bzip2.rs": "131251e2f928e9c08444cca129785a9bf70da627592cd72871795e76af5b8ab1",
+    "archive-wasm/src/codec.rs": "7b8a11611c54321a91a91ef5587f88aa1a35d6cd65044f4a3dd8c59d432ec3b0",
+    "archive-wasm/src/lib.rs": "8174466d8a2d157b0bc037a8c9e01a3a752b0694bf770d7bdbcfb39b2bb8fb81",
+    "archive-wasm/src/zstd.rs": "0a0cb844926f70647254fa86fa04c01bd7a3d669008c53d5549778dcee8b7a74",
+    "native/Cargo.toml": "0a33e840f3a1f9cfda60b8711be2baf50dbef49f7202e0ee0b092bb2a2f6d526",
+    "native/build.rs": "fcbd1ff3f627a7553fa1704dc6f558998daff8bc256015c37aace62cc49ce584",
+    "native/package.json": "34a12bf6ae9fe9413cb0d561c709cfa7f7162f9e7da1a52390e495aa0b370fc5",
+    "native/src/archive.rs": "9b2e35b7254aa5698e00304eb71844093fbd44a65f7f2c3a281c300b3348f3c8",
+    "native/src/archive_gzip.rs": "f0995932ea911e5d6c79ee794347577fc207c7e7f6f750ae4fca1d59c920cb0d",
+    "native/src/archive_tar_buffer_tests.rs": "50e16102bec0cb320a0f3a126e7449f30ca47a2d24560b33ae84043269002135",
+    "native/src/clone_linux.rs": "12381bfa9e2730e7f811393f72c75bffda33a8101dae2f93cadd313b73035dd4",
+    "native/src/clone_metadata.rs": "8e78981637ccdf0aa41e9f4850e01618acfe02d620e80da6b36cbe221e1189a9",
+    "native/src/clone_tree.rs": "50bcb5ab153141412cce24d4e7c604115034899049da61a9f3afe50ae5ea9988",
+    "native/src/clone_unix.rs": "14bdf7fdf75b0c0aa46ac9e3e18b59de09f01b2f63f77c3d463538c16669310f",
+    "native/src/clone_windows.rs": "4cb443df0e89bde1ccd978c7616df67fcdc7caa4abf2d0a47b60e226b6e4512d",
+    "native/src/copy_contents.rs": "07e2ab312cd7ad6255e7a7616ec7bbadfbfd5c59b53352a6b05c66f7d5ac260c",
+    "native/src/copy_linux.rs": "0b0e8a4fb65cc67581051504d2324c5767f7eced8fe56d24bf6d6ac59f61f233",
+    "native/src/copy_windows.rs": "97ee65989d72bfb4e27882e4823dabbe5c89836a23365f5e6daa06e65d79eced",
+    "native/src/darwin_security.rs": "e7d7642e39a2888aa4a237e3656fe909496b0e726d16d716ad31da362691c106",
+    "native/src/darwin_security_tests.rs": "6556ea9a5d04cfa3331dd842557e4e15af1f74d37c00ba2c1f9a64d9e216da28",
+    "native/src/directory_observation.rs": "2bbe933ce88d51475ef85e7f52c8df18358b65e6bc651a863378c2a003e833d9",
+    "native/src/directory_observation_tests.rs": "2b84f52893e53eb54c8cbeb2ffbdfac14f592303ed09cb046d4027cea605f822",
+    "native/src/directory_observation_windows_tests.rs": "b1677da90d16ad6516d5ba7d4452a8a54e07788e977673758c4ee0e4e8602302",
+    "native/src/fast_file.rs": "4fc62d0143bbe116f38f2b7062f193f361279e23367f334df0eec6b424a5d488",
+    "native/src/file_copy.rs": "85eee57103af9973a365dda62808028cfcab688f23e84c82b637ea11cb4e915b",
+    "native/src/lib.rs": "6261f11258274deda5a59ed836256970b00dc6a7bf7ef1e71e4205d85af2bce5",
+    "native/src/linux_open.rs": "958fe330ca77c29a36cd6dfee7ea3e75e8850df00366cf2d6d83d108bf4ad835",
+    "native/src/owned_tree.rs": "8272bfea57b97c456d97e1a538ed10e1b886096c989f32d76d953e25c843d105",
+    "native/src/realpath.rs": "0e767198c82e2912927e3de81eaf25d75f949b38573a1ffb1125ccbb20b8e394",
+    "native/src/retained_file.rs": "3bc5ce66dd354dc75ac33c6c9bcc24f051e396b3e948c53ba3dcad8f20bfabbd",
+    "native/src/retained_file_tests.rs": "bb14f4cb75e600e8bf1f1d84217e5244876ab1b4f537a54145326a234c982d92",
+    "native/src/retained_file_windows.rs": "2feba0279ff41d0c5ca075d32bffd31b87090bb8df7564bc0775051bdeb4ed04",
+    "native/src/root_create_windows.rs": "53217696298b16a3e4bdde9248ce3bf81232c41e46e46cf4e9680651325ce3e7",
+    "native/src/root_creation_tests.rs": "ec7215fd1f71ef9bfb32c81d88a4528db0316d5c84ccde1ca13732b6a4cb6035",
+    "native/src/root_move_tests.rs": "b7ef13244e3082677d7309dcc131dd048cf0471ed26f37bc4b4fd368c09be4e0",
+    "native/src/root_remove.rs": "ecb85708c34e615c8e2fd24901e88c93250643ebacdcfb9f1194dc56a7f0368e",
+    "native/src/root_remove_tests.rs": "b2462de18fb154a64fb813eac611d4390b6e5011be9d2539a2ea3bbc7a6205c8",
+    "native/src/root_remove_windows.rs": "c5cb085f4e8490614ae50843f2838b39a5fb1032753e712948e626b734acfde5",
+    "native/src/staged_file.rs": "1dcdd811eb1412a16201de444c65385fccaffaefd8e32a10d65e50907ea71420",
+    "native/src/staged_symlink.rs": "1a3e4fc2df7fae44970b926aefd8aeed97be94acba6256210f8b11105fe440a1",
+    "native/src/staged_symlink_tests.rs": "488d56f14b70f225c47ee7bcbeb7182911bf48201d2b6dee991d6a9eaed6bc9c",
+    "native/src/task.rs": "5715a4c6be89cfdf0aaee95d6f0165a5fc3ccda0f93f80b3a7cb7beadcbc83d0",
+    "native/src/unix.rs": "9bd3271f52a7179afe8e62fd8787616edb39d7e7aad4c5191b8f1e4ad98fb821",
+    "native/src/watch.rs": "ad59239d446ac2e884ba6a97d13547d654d14ec6fb4be5a04b9d13f2b43c3078",
+    "native/src/watch_callback.rs": "74b4520ad264db32057bc34f25109ce6f3a0db18915e46a7737136a346b4ee73",
+    "native/src/watch_kqueue.rs": "74795b72326354f7859352fe2fa49500dc46804575a52261f6b3329148526b89",
+    "native/src/watch_linux.rs": "e4aa802ea8ba37a355f00efb0ef65d2def7182f3d0d1f9f52623d704d40ac79e",
+    "native/src/watch_macos.rs": "b5779a172107521790f37de6b2e180b69274ad21128c52db81ecb1ea90fdf356",
+    "native/src/watch_memory.rs": "a0c2b733895500e0b512f42a4954a645571fbfc5a5fe477f2fdfdf57c685f27d",
+    "native/src/watch_windows.rs": "71d2ce707739ef3c342b5b7212de3140118198ff26efb583d113f4c9f2f1f410",
+    "native/src/windows.rs": "465e357065786aeec6d397f350340b7331c3e4e9faf7118e03cf9c404fa31d51",
+    "native/src/windows_secure_file.rs": "5b493bbbad60885714edb7dc9e579c783db2b289de4aba43e051dd5a6cf4cd15",
+    "native/src/windows_security.rs": "d0a7ae8d6347fd73a17cc03a3161e6e940eb618de4a574b32cfacaf17fd3d1f4",
+    "package.json": "e64c2a80c792dea08223f4c0d1b2c7e75ea185064db6f15e1229a2c9ae19a842",
+    "packages/linux-x64-gnu/package.json": "ab9c62fd2f81012831dc46162791aa6fca0ed1b7c24ba5bbda2feeff0647ef17",
+    "pnpm-lock.yaml": "efee2f1dafc55b155735c39c46869673362b1a72a471e64b6038d5ec3218a495",
+    "pnpm-workspace.yaml": "9a3932a0398442a9e69e5460d42fec4d5b8b53abb91f6a145b9c8ed379f0c809",
+    "scripts/native-targets.mjs": "185729624c4c073ac49ff181a563693b2a21a9eafc835e1543a27c16741bd9e0",
+    "scripts/stage-host-native.mjs": "fb3e40dbb58bf6c72dd1259e6e85f0ac76d6b7ff46fe00be74fb2624addf5ac0"
+  },
+  "expectedInternalDeclarationChanges": [
+    "dist/root-context.d.ts",
+    "dist/root-observed-path.d.ts",
+    "dist/root-walk.d.ts"
+  ],
+  "expectedChangedJs": [
+    "dist/root-context.js",
+    "dist/root-impl.js",
+    "dist/root-observed-path.js",
+    "dist/root-walk.js"
+  ],
+  "packageManager": "pnpm@12.4.2",
+  "nodeVersions": {
+    "node22": "v22.23.2",
+    "node24": "v24.21.0"
+  },
+  "nativePackage": "@openclaw/fs-safe-linux-x64-gnu",
+  "scenarios": [
+    "construction-and-resolve",
+    "ordinary-stat",
+    "ordinary-list",
+    "walk-skip",
+    "walk-include",
+    "initial-stat-hook",
+    "in-root-alias",
+    "root-replacement",
+    "parent-redirection"
+  ]
+}

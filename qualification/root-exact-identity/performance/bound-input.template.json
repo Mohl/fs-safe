@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "study": "root-exact-identity-domain-v2",
+  "launch": false,
+  "protocolSha256": "f4005736ad14612986b4f935937326b88e257ac5eb67da696d1c8fa3b485e7ba",
+  "source": {
+    "baseline": {
+      "commit": "ae83cc9a851f325a7e047baf4b8cc6402c613bb3",
+      "tree": "2090874a4b407ed90a28175f2eb7c2297f2f69a9"
+    },
+    "candidate": {
+      "commit": "3488b411206b8031db5a122ec25fe1d6e3630a9e",
+      "tree": "fbd58c12c921a0d4248d76bf108b4e2127220e46"
+    }
+  },
+  "harness": {
+    "commit": null,
+    "tree": null,
+    "inventorySha256": "b4519dfc455d46d37c759a61e79b1892fe45197354859a79ccf99ffba58c9fe9",
+    "runnerHash": null
+  },
+  "runtime": {
+    "nodePath": null,
+    "nodeVersion": null,
+    "nodeSha256": null,
+    "pnpmVersion": null
+  },
+  "host": {
+    "provider": null,
+    "leaseId": null,
+    "instanceId": null,
+    "cpu": null,
+    "allowedCpuMask": null,
+    "filesystem": null
+  },
+  "functional": {
+    "readyPath": null,
+    "readySha256": null,
+    "auditPath": null,
+    "auditSha256": null,
+    "terminalReceiptPath": null,
+    "terminalReceiptSha256": null
+  },
+  "consumers": {
+    "B0": {
+      "path": null,
+      "packageRoot": null,
+      "dist": null,
+      "sourceRole": "baseline",
+      "sourceCommit": "ae83cc9a851f325a7e047baf4b8cc6402c613bb3",
+      "sourceTree": "2090874a4b407ed90a28175f2eb7c2297f2f69a9",
+      "packageTarball": {
+        "path": null,
+        "sha256": null,
+        "sha512": null
+      },
+      "addonTarball": {
+        "path": null,
+        "sha256": null,
+        "sha512": null
+      },
+      "nativeAddon": {
+        "path": null,
+        "sha256": null,
+        "packageName": null,
+        "packageVersion": null
+      },
+      "inventory": {
+        "path": null,
+        "sha256": null
+      },
+      "lockfile": {
+        "path": null,
+        "sha256": null
+      },
+      "distSha256": null
+    },
+    "B1": {
+      "path": null,
+      "packageRoot": null,
+      "dist": null,
+      "sourceRole": "baseline",
+      "sourceCommit": "ae83cc9a851f325a7e047baf4b8cc6402c613bb3",
+      "sourceTree": "2090874a4b407ed90a28175f2eb7c2297f2f69a9",
+      "packageTarball": {
+        "path": null,
+        "sha256": null,
+        "sha512": null
+      },
+      "addonTarball": {
+        "path": null,
+        "sha256": null,
+        "sha512": null
+      },
+      "nativeAddon": {
+        "path": null,
+        "sha256": null,
+        "packageName": null,
+        "packageVersion": null
+      },
+      "inventory": {
+        "path": null,
+        "sha256": null
+      },
+      "lockfile": {
+        "path": null,
+        "sha256": null
+      },
+      "distSha256": null
+    },
+    "C0": {
+      "path": null,
+      "packageRoot": null,
+      "dist": null,
+      "sourceRole": "candidate",
+      "sourceCommit": "3488b411206b8031db5a122ec25fe1d6e3630a9e",
+      "sourceTree": "fbd58c12c921a0d4248d76bf108b4e2127220e46",
+      "packageTarball": {
+        "path": null,
+        "sha256": null,
+        "sha512": null
+      },
+      "addonTarball": {
+        "path": null,
+        "sha256": null,
+        "sha512": null
+      },
+      "nativeAddon": {
+        "path": null,
+        "sha256": null,
+        "packageName": null,
+        "packageVersion": null
+      },
+      "inventory": {
+        "path": null,
+        "sha256": null
+      },
+      "lockfile": {
+        "path": null,
+        "sha256": null
+      },
+      "distSha256": null
+    },
+    "C1": {
+      "path": null,
+      "packageRoot": null,
+      "dist": null,
+      "sourceRole": "candidate",
+      "sourceCommit": "3488b411206b8031db5a122ec25fe1d6e3630a9e",
+      "sourceTree": "fbd58c12c921a0d4248d76bf108b4e2127220e46",
+      "packageTarball": {
+        "path": null,
+        "sha256": null,
+        "sha512": null
+      },
+      "addonTarball": {
+        "path": null,
+        "sha256": null,
+        "sha512": null
+      },
+      "nativeAddon": {
+        "path": null,
+        "sha256": null,
+        "packageName": null,
+        "packageVersion": null
+      },
+      "inventory": {
+        "path": null,
+        "sha256": null
+      },
+      "lockfile": {
+        "path": null,
+        "sha256": null
+      },
+      "distSha256": null
+    }
+  }
+}

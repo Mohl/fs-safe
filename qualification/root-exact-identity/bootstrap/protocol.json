@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "ready": false,
+  "name": "root-exact-identity-domain-v2-toolchains",
+  "sourcePins": {
+    "A": {
+      "commit": "ae83cc9a851f325a7e047baf4b8cc6402c613bb3",
+      "tree": "2090874a4b407ed90a28175f2eb7c2297f2f69a9"
+    },
+    "B": {
+      "commit": "3488b411206b8031db5a122ec25fe1d6e3630a9e",
+      "tree": "fbd58c12c921a0d4248d76bf108b4e2127220e46"
+    }
+  },
+  "platform": "linux",
+  "arch": "x64",
+  "libc": "glibc",
+  "nodeVersions": {
+    "22": "v22.23.2",
+    "24": "v24.21.0"
+  },
+  "bounds": {
+    "bootstrapSeconds": 1200
+  }
+}

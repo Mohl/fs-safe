@@ -65,25 +65,6 @@ if (args["copy-concurrency"] !== undefined) {
   assert(args["copy-concurrency"].length > 0 && args["copy-concurrency"].every(value => Number.isInteger(value) && value >= 1 && value <= 32), "Invalid copy concurrency");
   assert(new Set(args["copy-concurrency"]).size === args["copy-concurrency"].length, "Duplicate copy concurrency");
 }
-const exactIdentityDlopen = args.filter === "Root/exact-identity-domain/" ? { attempts: [], outcomes: [] } : undefined;
-if (exactIdentityDlopen) {
-  const originalDlopen = process.dlopen;
-  process.dlopen = function (...values) {
-    const sequence = exactIdentityDlopen.attempts.length + 1;
-    exactIdentityDlopen.attempts.push({ sequence });
-    try {
-      const filename = String(values[1]);
-      const loaded = { filename: path.basename(filename), sha256: createHash("sha256").update(fs.readFileSync(filename)).digest("hex") };
-      assert.notEqual(args.mode, "off", "native off attempted dlopen");
-      const result = Reflect.apply(originalDlopen, this, values);
-      exactIdentityDlopen.outcomes.push({ sequence, succeeded: true, ...loaded });
-      return result;
-    } catch (error) {
-      exactIdentityDlopen.outcomes.push({ sequence, succeeded: false });
-      throw error;
-    }
-  };
-}
 const packageRoot = path.resolve(import.meta.dirname, "..");
 const dist = path.resolve(args.dist ?? path.join(packageRoot, "dist"));
 const distHash = createHash("sha256").update(
@@ -141,8 +122,7 @@ const workspace = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), "
 const workspaceFilesystem = fs.statfsSync(workspace);
 const cases = [];
 const timingJournalField = args.filter === "ensureAbsoluteDirectory/synchronous-guard-owner/" ? "synchronousGuardEvent"
-  : args.filter === "Root.stat/observation-owner/" ? "rootStatObservationEvent"
-  : args.filter === "Root/exact-identity-domain/" ? "rootExactIdentityEvent" : undefined;
+  : args.filter === "Root.stat/observation-owner/" ? "rootStatObservationEvent" : undefined;
 let journaledTimedCalls = 0;
 const exclusions = new Map();
 const contracts = new Map();
@@ -275,7 +255,6 @@ try {
     metadata: {
       harnessHash: harnessDigest,
       nativeHash,
-      ...(exactIdentityDlopen ? { exactIdentityDlopen } : {}),
       distHash,
       measuredDistribution,
       guest,

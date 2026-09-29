@@ -1,4 +1,3 @@
-import { ROOT_EXACT_IDENTITY_PREFIX, registerRootExactIdentityDomain } from "./root-exact-identity-domain.mjs";
 import { ROOT_STAT_OBSERVATION_PREFIX, registerRootStatObservationOwner } from "./root-stat-observation-owner.mjs";
 import { SYNCHRONOUS_GUARD_PREFIX, registerSynchronousGuardOwner } from "./absolute-directory-synchronous-guard-owner.mjs";
 import assert from "node:assert/strict";
@@ -16,14 +15,10 @@ export async function registerPaths({
   exclude,
   args,
   native,
-  binding,
   measuredProfiles,
   PermissionCommandError,
   onCleanup,
 }) {
-  if (args.filter === ROOT_EXACT_IDENTITY_PREFIX) {
-    await registerRootExactIdentityDomain({ api: a, workspace: w, register: add, args, binding });
-  }
   if (args.filter === ROOT_STAT_OBSERVATION_PREFIX) {
     assert.equal(args.mode, "off");
     assert.equal(process.env.NODE_ENV, "test");

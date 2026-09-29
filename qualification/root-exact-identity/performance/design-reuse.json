@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "sourceStudy": "#766 root-stat observation owner",
+  "reusedBehavior": [
+    "24-block balanced four-arm schedule",
+    "10 warmups, one checked call, five samples of 20 calls",
+    "runner before/run/after cleanup settlement and finally elapsed journal",
+    "paired source log ratio and bidirectional same-source controls",
+    "df23 critical 1.7138715277470473, 1.10 bounds and no retry policy"
+  ],
+  "sourceHashes": {
+    "assess-performance.py": "135ee990560052a4614a51750be009ed331d452e35156d5a0b204bb715e82537",
+    "changed-harness/benchmarks/paths.mjs": "8d77f563527fa6f69b33035105837131030b6f3caab472d6992b09a0bf634a2c",
+    "changed-harness/benchmarks/runner.mjs": "94f67788776e410beb5bae248f4e637bd32a4f665f99d3c75bc10e1aa971d932"
+  },
+  "notCopied": [
+    "prior measurements, verdicts, ready records, source/runtime/package bindings",
+    "transport/build/lease driver and full external harness tree"
+  ],
+  "measurementDataReused": false,
+  "productsEvaluated": false
+}

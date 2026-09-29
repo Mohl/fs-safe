@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "bootstrapSource": "reviewed #766 bootstrap copy; implementation bytes unchanged, source/toolchain inputs freshly bound",
+  "hashes": {
+    "bootstrap-toolchains.py": "7f2b3bff4a361d187cdafa7d29a20caa5296dd5da9aa964ad160ab027eb30151",
+    "harness/bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
+    "harness/settlement_control.py": "63338a93219e17187fe1db7dc1b5b2d4c0bdc88ad46c7328f58a89c428504ba6"
+  },
+  "publicApiHelperChange": "private subpath assertions name the three actually changed internal declarations",
+  "priorResultsReused": false
+}

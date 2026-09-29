@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "study": "root-exact-identity-domain-v2",
+  "performanceManifestSha256": "96bdc842c99f6de0479fe26f14b2f4d81586b8f9eb0179797a1f6f4f1f6f00de",
+  "protocolSha256": "f4005736ad14612986b4f935937326b88e257ac5eb67da696d1c8fa3b485e7ba",
+  "functionalSourceManifestSha256": "0308ff278a6fe5728c5a765a65776386ac834a085a5e50eceb51dbe7dc4d37b4",
+  "functionalFiles": {
+    "README.md": "8fb9039acf825239f5d7e7eed1fdfa6ce2dc1fa28c7b9497d0251a4630d1fb56",
+    "bootstrap/bootstrap-toolchains.py": "7f2b3bff4a361d187cdafa7d29a20caa5296dd5da9aa964ad160ab027eb30151",
+    "bootstrap/harness/bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
+    "bootstrap/harness/settlement_control.py": "63338a93219e17187fe1db7dc1b5b2d4c0bdc88ad46c7328f58a89c428504ba6",
+    "bootstrap/pins.json": "1cbabf2e40281ee30396bdb9be4a347d09941a910630f9d5abe1d7a08aa0e7bd",
+    "bootstrap/protocol.json": "e6c9477d00fd5db3b2ab8378a17954e8bf85c10390cd773957332a6d070108e5",
+    "installed-proof.mjs": "5b0e74c416cafa55b7d02a39d5c7c686431292e19ec4b96595835dfc7bd4ec6b",
+    "installed-public-api.mjs": "6756cfdd1e2fb12fd7895ffcdb9cd8fa2ae5173ba689b57ffe6ed41c25784dca",
+    "pins.json": "2a26bcf54fb23a44ad36f130c91d2252a9b7ab5c847d17f7c88da6240be365fd",
+    "reuse.json": "3a6d02ebdf672dd474821c71fab96d1c6e76a87f5aa888e237219f4642858425",
+    "run-functional.py": "9e668a9d9d32ef43700783871e2e8ddc28e6f271d2398be0ea6c223c17ab8053"
+  },
+  "functionalPinsNormalizedSha256": "9c5936728d72eaaec10f79603b7c7c03ded0cdacee63c19845b9cd2981164da6",
+  "sourcePins": {
+    "A": {
+      "commit": "ae83cc9a851f325a7e047baf4b8cc6402c613bb3",
+      "tree": "2090874a4b407ed90a28175f2eb7c2297f2f69a9"
+    },
+    "B": {
+      "commit": "3488b411206b8031db5a122ec25fe1d6e3630a9e",
+      "tree": "fbd58c12c921a0d4248d76bf108b4e2127220e46"
+    }
+  },
+  "helperSha256": {
+    "bounded.py": "cec5cdfb13081c086c9538612dc1a10b2d71af13a52d875f8b9db249a7e9e157",
+    "settlement_control.py": "63338a93219e17187fe1db7dc1b5b2d4c0bdc88ad46c7328f58a89c428504ba6"
+  }
+}
