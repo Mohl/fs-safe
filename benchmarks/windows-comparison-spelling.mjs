@@ -358,7 +358,7 @@ export function prepareWindowsComparisonStudy({ args, dist, packageRoot, manifes
           if (expected.rejected) {
             assert(output instanceof api.FsSafeError);
             assert.equal(output.code, "outside-workspace");
-            assert.equal(output.cause, undefined);
+            assert(output.cause instanceof Error);
           } else {
             assert.deepEqual(output.buffer, Buffer.from(PAYLOAD));
             assert.equal(output.realPath, `${ordinaryPath}\\payload.txt`);

@@ -626,7 +626,7 @@ other rows must show the real slow normalization. Case-fold observations must
 retain the exact supplied prefix (including `\\?\` when present) and actual
 bigint directory identity. Namespace-only and adjacent-prefix rows need no
 identity observation. Every read checks the complete expected bytes; refusals
-must be `FsSafeError` with `outside-workspace` and no cause. A forwarding loader
+must be `FsSafeError` with `outside-workspace` and an `Error` cause. A forwarding loader
 observer requires zero addon load attempts from before public-package imports
 through runner cleanup.
 
