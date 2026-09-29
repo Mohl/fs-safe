@@ -1,3 +1,4 @@
+import { ABSOLUTE_RESULT_PREFIX, registerAbsoluteDirectoryResultOwner } from "./absolute-directory-result-owner.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -17,6 +18,10 @@ export async function registerPaths({
   PermissionCommandError,
   onCleanup,
 }) {
+  if (args.filter === ABSOLUTE_RESULT_PREFIX) {
+    assert.equal(args.mode, "off");
+    registerAbsoluteDirectoryResultOwner({ api: a, workspace: w, register: add, onCleanup });
+  }
   const input = path.join(w, "input.json");
   const error = Object.assign(new Error("synthetic"), { code: "ENOENT" });
   const simple = {
