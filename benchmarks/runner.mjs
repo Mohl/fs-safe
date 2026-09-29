@@ -121,6 +121,8 @@ const nativeHash = loadedAddon
 const workspace = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), "fs-safe-methods-")));
 const workspaceFilesystem = fs.statfsSync(workspace);
 const cases = [];
+const retainSynchronousGuardCalls = args.filter === "ensureAbsoluteDirectory/synchronous-guard-owner/";
+let synchronousGuardTimedCalls = 0;
 const exclusions = new Map();
 const contracts = new Map();
 const register = (name, run, options = {}) => {
@@ -185,6 +187,8 @@ try {
       (c.sync && !c.before && !c.after ? (c.batch ?? 1) : 1);
     const once = async (timed) => {
       const input = await c.before?.();
+      const sequence = timed && retainSynchronousGuardCalls ? ++synchronousGuardTimedCalls : undefined;
+      if (sequence !== undefined) fs.writeSync(2, JSON.stringify({ synchronousGuardEvent: "start", row: c.name, sequence }) + "\n");
       let output;
       let elapsed;
       const invocationFailures = [];
@@ -197,8 +201,10 @@ try {
           if (!c.expectError) throw error;
           output = error;
           rejected = true;
+        } finally {
+          elapsed = performance.now() - start;
+          if (sequence !== undefined) fs.writeSync(2, JSON.stringify({ synchronousGuardEvent: "elapsed", row: c.name, sequence, milliseconds: elapsed }) + "\n");
         }
-        elapsed = performance.now() - start;
         if (c.expectError && !rejected) throw new Error(`${c.name} unexpectedly succeeded`);
         if (!timed) c.verify?.(output);
       } catch (error) {

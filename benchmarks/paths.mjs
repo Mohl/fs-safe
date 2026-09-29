@@ -1,3 +1,4 @@
+import { SYNCHRONOUS_GUARD_PREFIX, registerSynchronousGuardOwner } from "./absolute-directory-synchronous-guard-owner.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -17,6 +18,10 @@ export async function registerPaths({
   PermissionCommandError,
   onCleanup,
 }) {
+  if (args.filter === SYNCHRONOUS_GUARD_PREFIX) {
+    assert.equal(args.mode, "off");
+    registerSynchronousGuardOwner({ api: a, workspace: w, register: add, onCleanup });
+  }
   const input = path.join(w, "input.json");
   const error = Object.assign(new Error("synthetic"), { code: "ENOENT" });
   const simple = {
