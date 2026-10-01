@@ -1,12 +1,12 @@
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { itPosix, itWin32, useTempDirs } from "./helpers/vitest.js";
 import { replaceFileAtomic, replaceFileAtomicSync } from "../src/atomic.js";
 
 const { tempRoot } = useTempDirs();
-
+afterEach(() => vi.restoreAllMocks());
 
 
 async function runAsyncFallbackOrderProbe(root: string): Promise<{
@@ -96,10 +96,10 @@ describe("atomic descriptor modes", () => {
     const root = await tempRoot(`fs-safe-atomic-chmod-race-${mode}-`);
     const filePath = path.join(root, "state.txt");
     const victimPath = path.join(root, "victim.txt");
-    const chmodPaths: string[] = [];
     let publishedMode: number | undefined;
     await fs.writeFile(victimPath, "victim", { mode: 0o644 });
     await fs.chmod(victimPath, 0o644);
+    const chmod = mode === "async" ? vi.spyOn(fs, "chmod") : vi.spyOn(fsSync, "chmodSync");
     const options = { filePath, content: "new", mode: 0o600 };
     const previousUmask = process.umask(0o077);
     try {
@@ -108,10 +108,6 @@ describe("atomic descriptor modes", () => {
           ...options,
           fileSystem: { promises: {
             ...fs,
-            chmod: async (candidate, mode) => {
-              chmodPaths.push(String(candidate));
-              await fs.chmod(candidate, mode);
-            },
             rename: async (source, destination) => {
               await fs.rename(source, destination);
               publishedMode = (await fs.stat(destination)).mode & 0o777;
@@ -125,10 +121,6 @@ describe("atomic descriptor modes", () => {
           ...options,
           fileSystem: {
             ...fsSync,
-            chmodSync: (candidate, mode) => {
-              chmodPaths.push(String(candidate));
-              fsSync.chmodSync(candidate, mode);
-            },
             renameSync: (source, destination) => {
               fsSync.renameSync(source, destination);
               publishedMode = fsSync.statSync(destination).mode & 0o777;
@@ -143,10 +135,10 @@ describe("atomic descriptor modes", () => {
     }
 
     expect({
-      chmodPaths,
       publishedMode,
       victimMode: (await fs.stat(victimPath)).mode & 0o777,
-    }).toEqual({ chmodPaths: [], publishedMode: 0o600, victimMode: 0o644 });
+    }).toEqual({ publishedMode: 0o600, victimMode: 0o644 });
+    expect(chmod).not.toHaveBeenCalled();
     expect((await fs.lstat(filePath)).isSymbolicLink()).toBe(true);
   });
 
