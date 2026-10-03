@@ -7,6 +7,7 @@
 - **ZIP collision checks:** reject directory and file names that differ only by case, Unicode normalization, or a trailing separator before extraction or bounded reads. ([#832](https://github.com/openclaw/fs-safe/pull/832)) Thanks @SebTardif.
 - **macOS entry watch:** prevent a FIFO at a watched name from blocking every watcher in the process. ([#830](https://github.com/openclaw/fs-safe/pull/830)) Thanks @SebTardif.
 - Preserve disk-full (`ENOSPC`) diagnostics and cleanup receipts through combined write and disposal failures instead of reporting a misleading file-type error.
+- **Linux clone fallback in containers:** `copyIn({ clone: "auto" })` and other native file copies now fall back to ordinary copying when a container seccomp profile denies `FICLONE` with `EPERM`, instead of failing with `helper-failed`; `clone: "always"` reports `unsupported-platform`. Directory `copyTree` cloning is unchanged.
 
 ## 0.23.0 - 2026-10-02
 
